@@ -1,9 +1,14 @@
 import express from "express";
 const router = express.Router();
 
+// Controllers
+import { getAllOrders } from "../controllers/orderControllers.js";
+
+//middlewares
+import auth from "../middlewares/auth.js";
+router.use(auth);
+
 // Example route
-router.get("/", (req, res) => {
-  res.json({ message: "Order route works!" });
-});
+router.get("/", getAllOrders);
 
 export default router;

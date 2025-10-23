@@ -12,4 +12,7 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpires: { type: Date },
 });
 
-export default mongoose.model("User", userSchema);
+// if the model doesn't exist, create a new model
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+export default User;
+

@@ -1,15 +1,14 @@
 import express from "express";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import User from "../models/User.js";
-import auth from "../middleware/auth.js";
+import auth from "../middlewares/auth.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key";
 const JWT_EXPIRES_IN = "7d";
-
 
 // register
 router.post("/register", async (req, res) => {
@@ -28,11 +27,17 @@ router.post("/register", async (req, res) => {
 
     // Issue token
     const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    console.log(token)
-   return res.status(201).json({
+    console.log(token);
+    return res.status(201).json({
       message: "User registered successfully.",
       token,
-      user: { id: newUser._id, fullName: newUser.fullName, email: newUser.email, phone: newUser.phone, profileImage: newUser.profileImage }
+      user: {
+        id: newUser._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        phone: newUser.phone,
+        profileImage: newUser.profileImage,
+      },
     });
   } catch (err) {
     console.error(err);
@@ -57,7 +62,13 @@ router.post("/login", async (req, res) => {
     res.json({
       message: "Login successful.",
       token,
-      user: { id: user._id, fullName: user.fullName, email: user.email, phone: user.phone, profileImage: user.profileImage }
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        profileImage: user.profileImage,
+      },
     });
   } catch (err) {
     console.error(err);
