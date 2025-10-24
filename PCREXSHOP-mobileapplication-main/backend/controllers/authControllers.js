@@ -9,7 +9,10 @@ const secretKey = process.env.JWT_SECRET;
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
   // regex
-  const regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+$/;
+  const regex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+
+   console.log("Incoming register request:", req.body);
+  console.log("Regex test:", regex.test(email));
 
   try {
     // check if any field is missing
@@ -19,6 +22,7 @@ const register = async (req, res) => {
 
     // check if email is valid
     if (!regex.test(email)) {
+       console.log("❌ Invalid email:", email);
       return res.status(400).json({ message: "Invalid email" });
     }
 
