@@ -4,13 +4,19 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import User from "../models/User.js";
+import Order from "../models/Order.js"; // ✅ to fetch customer orders
 import auth from "../middlewares/auth.js";
+import { updateUserProfile, upload } from "../controllers/userController.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key";
 const JWT_EXPIRES_IN = "7d";
 
-// register
+/* ==============================
+   🔹 AUTH ROUTES (Register, Login)
+   ============================== */
+
+// Register new user
 router.post("/register", async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
@@ -25,9 +31,8 @@ router.post("/register", async (req, res) => {
     const newUser = new User({ fullName, email, password: hashed });
     await newUser.save();
 
-    // Issue token
     const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-    console.log(token);
+
     return res.status(201).json({
       message: "User registered successfully.",
       token,
@@ -45,7 +50,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// login
+// Login user
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -76,12 +81,21 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// get current user
-router.get("/me", auth, (req, res) => {
-  res.json({ user: req.user });
+// Get current user (for logged-in users)
+router.get("/me", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch user info" });
+  }
 });
 
-// forgot password
+/* ==============================
+   🔹 PASSWORD RESET ROUTES
+   ============================== */
+
+// Forgot password
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -90,14 +104,12 @@ router.post("/forgot-password", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "No account with that email." });
 
-    // Create reset token
     const buffer = crypto.randomBytes(20);
     const token = buffer.toString("hex");
     user.resetPasswordToken = token;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    // Setup nodemailer transporter — configure with real credentials or use a dev transporter
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.example.com",
       port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
@@ -113,14 +125,12 @@ router.post("/forgot-password", async (req, res) => {
       to: user.email,
       from: process.env.EMAIL_FROM || "no-reply@example.com",
       subject: "Password Reset Request",
-      text: `You requested a password reset. Click or visit: ${resetLink}\nThis link is valid for 1 hour.`,
+      text: `You requested a password reset. Visit: ${resetLink}\nThis link is valid for 1 hour.`,
     };
 
-    // Send mail (in dev, you may prefer to return resetLink instead of sending email)
-    transporter.sendMail(mailOptions, (err, info) => {
+    transporter.sendMail(mailOptions, (err) => {
       if (err) {
         console.error("Mail error:", err);
-        // For dev fallback, return the reset link in response (unsafe for prod)
         return res.json({ message: "Could not send email. Use the link below (dev only).", resetLink });
       }
       res.json({ message: "Email sent." });
@@ -131,7 +141,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// reset password
+// Reset password
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { token } = req.params;
@@ -142,6 +152,7 @@ router.post("/reset-password/:token", async (req, res) => {
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() },
     });
+
     if (!user) return res.status(400).json({ message: "Invalid or expired token." });
 
     user.password = await bcrypt.hash(password, 10);
@@ -155,5 +166,56 @@ router.post("/reset-password/:token", async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 });
+
+/* ==============================
+   🔹 ADMIN & PROFILE ROUTES
+   ============================== */
+
+// Protect routes
+router.use(auth);
+
+// ✅ Get all users (for admin Customers page)
+router.get("/", async (req, res) => {
+  try {
+    const users = await User.find().select("fullName email phone profileImage");
+    res.json(users);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
+// ✅ Get single user with their order details
+router.get("/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId).select("fullName email phone address profileImage");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const orders = await Order.find({ user: userId }).sort({ orderDate: -1 });
+
+    const totalOrders = orders.length;
+    const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+    const ordersByStatus = {};
+    orders.forEach((order) => {
+      if (!ordersByStatus[order.status]) ordersByStatus[order.status] = [];
+      ordersByStatus[order.status].push(order);
+    });
+
+    res.json({
+      ...user.toObject(),
+      totalOrders,
+      totalSpent,
+      ordersByStatus,
+    });
+  } catch (err) {
+    console.error("Error fetching user details:", err);
+    res.status(500).json({ message: "Failed to fetch user details" });
+  }
+});
+
+// ✅ Update user profile (supports Base64 or multipart upload)
+router.put("/profile", upload.single("profileImage"), updateUserProfile);
 
 export default router;

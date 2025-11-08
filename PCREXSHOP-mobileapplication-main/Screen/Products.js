@@ -4,18 +4,14 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  TextInput,
   FlatList,
   TouchableOpacity,
-  StatusBar, 
-  Platform
+  StatusBar,
+  Platform,
 } from 'react-native';
 import { useFonts } from 'expo-font';
 import { useCart } from '../context/CartContext';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-import Item from '../data/Item.json';
-
 import CategoryList from '../Components/CategoryList';
 import ProductCard from '../Components/ProductCard';
 
@@ -24,7 +20,7 @@ const THEME = {
   background: '#FAFAFA',
   text: '#1C1C1C',
   cardBackground: '#FFFFFF',
-  icons: '#FFFFFF'
+  icons: '#FFFFFF',
 };
 
 const Products = ({ navigation }) => {
@@ -34,40 +30,81 @@ const Products = ({ navigation }) => {
     'Rubik-Medium': require('../assets/fonts/Rubik/static/Rubik-Medium.ttf'),
     'Rubik-SemiBold': require('../assets/fonts/Rubik/static/Rubik-SemiBold.ttf'),
   });
-      
+
+  const [allProducts, setAllProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [allProducts] = useState(Item.map(item => ({
-    ...item,
-    category: item.category || { name: 'Unknown' } // Ensure category object exists
-  }))); // Process items once
-  const [filteredProducts, setFilteredProducts] = useState(allProducts);
-  const [categories, setCategories] = useState([]); // State to hold unique categories
   const { itemCount } = useCart();
 
-  useEffect(() => {
-    // Derive unique categories from allProducts (removed 'All Products')
-    const uniqueCategories = [...new Set(allProducts.map(item => item.category.name))];
-    setCategories(uniqueCategories);
-  }, [allProducts]); // Re-run if allProducts changes (though it's useState once)
+  
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('http://192.168.100.45:5000/api/products');
+      const data = await res.json();
+
+          const formatted = data.map((item) => {
+          const quantity = typeof item.quantity === 'number' ? item.quantity : 0;
+
+          let images = [];
+          if (Array.isArray(item.images) && item.images.length) {
+            images = item.images;
+          } else if (item.image) {
+            images = [item.image];
+          }
+
+          // Ensure full URL
+          images = images.map(img => {
+              if (!img) return 'https://via.placeholder.com/150';
+              if (img.startsWith('http')) return img;
+              if (img.startsWith('/')) return `http://192.168.100.45:5000${img}`;
+              return `http://192.168.100.45:5000/${img.replace(/\\/g, '/')}`;
+            });
+
+
+          return {
+            ...item,
+            quantity,
+            image: images[0] || 'https://via.placeholder.com/150',
+            images,
+          };
+        });
+
+
+      setAllProducts(formatted);
+      setFilteredProducts(formatted);
+
+      // ✅ Extract unique categories
+      const uniqueCategories = [...new Set(formatted.map((i) => i.category?.name || i.category || 'Unknown'))];
+      setCategories(uniqueCategories);
+    } catch (error) {
+      console.error('❌ Failed to fetch products:', error);
+    }
+  };
+
+  fetchProducts();
+}, []);
 
 
   useEffect(() => {
     let result = allProducts;
-
     if (searchQuery.trim() !== '') {
-      result = result.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      result = result.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-
     setFilteredProducts(result);
   }, [searchQuery, allProducts]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   const renderProduct = ({ item }) => (
     <View style={styles.gridCardContainer}>
-      <ProductCard product={item} onPress={() => navigation.navigate('ProductDetails', { product: item })} />
+      <ProductCard
+        product={item}
+        onPress={() => navigation.navigate('ProductDetails', { product: item })}
+      />
     </View>
   );
 
@@ -75,53 +112,50 @@ const Products = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME.primary} />
 
-<View style={styles.header}>
-  {/* Back Icon - Left */}
-  <TouchableOpacity onPress={() => navigation.goBack()}>
-    <Icon name="chevron-left" size={28} color={THEME.cardBackground} />
-  </TouchableOpacity>
+      {/* ✅ Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="chevron-left" size={28} color={THEME.cardBackground} />
+        </TouchableOpacity>
 
-  {/* Right Side Icons */}
-  <View style={styles.rightIcons}>
-    {/* Search */}
-    <TouchableOpacity 
-      onPress={() => navigation.navigate('SearchProduct')} 
-      style={styles.searchIconContainer}
-    >
-      <Icon name="magnify" size={26} color={THEME.icons} />
-    </TouchableOpacity>
+        <View style={styles.rightIcons}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('SearchProduct')}
+            style={styles.searchIconContainer}
+          >
+            <Icon name="magnify" size={26} color={THEME.icons} />
+          </TouchableOpacity>
 
-    {/* Cart with Badge */}
-    <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
-      <View>
-        <Icon name="cart-outline" size={26} color={THEME.icons} />
-        {itemCount > 0 && (
-          <View style={styles.badgeContainer}>
-            <Text style={styles.badgeText}>{itemCount}</Text>
-          </View>
-        )}
+          <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
+            <View>
+              <Icon name="cart-outline" size={26} color={THEME.icons} />
+              {itemCount > 0 && (
+                <View style={styles.badgeContainer}>
+                  <Text style={styles.badgeText}>{itemCount}</Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Account')}>
+            <Icon
+              name="account-outline"
+              size={26}
+              color={THEME.cardBackground}
+              style={styles.headerIcon}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
-    </TouchableOpacity>
 
-    {/* Account */}
-    <TouchableOpacity onPress={() => navigation.navigate('Account')}>
-      <Icon 
-        name="account-outline" 
-        size={26} 
-        color={THEME.cardBackground} 
-        style={styles.headerIcon} 
-      />
-    </TouchableOpacity>
-  </View>
-</View>
+      {/* ✅ Category List */}
+      <CategoryList categories={categories} navigation={navigation} />
 
-
-     <CategoryList categories={categories} navigation={navigation} />
-      
+      {/* ✅ Product Grid */}
       <FlatList
         data={filteredProducts}
         renderItem={renderProduct}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item) => item._id || item.id?.toString()}
         numColumns={2}
         contentContainerStyle={{ paddingHorizontal: 8 }}
         ListEmptyComponent={
@@ -130,7 +164,6 @@ const Products = ({ navigation }) => {
           </View>
         }
       />
-      
     </SafeAreaView>
   );
 };
@@ -139,51 +172,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingBottom: Platform.OS === 'ios' ? 80 : 80,
-    backgroundColor: THEME.background
+    backgroundColor: THEME.background,
   },
   header: {
-  backgroundColor: THEME.primary,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 16, 
-  paddingVertical: 10,
-},
-
-rightIcons: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 15, // spacing between icons
-},
-
-searchIconContainer: {
-  padding: 5,
-},
-
-headerIcon: {
-  marginLeft: 4,
-},
-
-badgeContainer: {
-  position: 'absolute',
-  top: -4,
-  right: -6,
-  backgroundColor: '#EE2323',
-  borderRadius: 9,
-  width: 18,
-  height: 18,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-badgeText: {
-  color: '#FFFFFF',
-  fontSize: 10,
-  fontWeight: 'bold'
-},
-  gridCardContainer: {
-    width: '50%',
+    backgroundColor: THEME.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
+  rightIcons: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  searchIconContainer: { padding: 5 },
+  headerIcon: { marginLeft: 4 },
+  badgeContainer: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    backgroundColor: '#EE2323',
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' },
+  gridCardContainer: { width: '50%' },
   noResultsContainer: {
     flex: 1,
     alignItems: 'center',
@@ -193,7 +207,7 @@ badgeText: {
   noResultsText: {
     fontSize: 16,
     color: '#6c757d',
-    fontFamily: 'Rubik-Medium', 
+    fontFamily: 'Rubik-Medium',
   },
 });
 

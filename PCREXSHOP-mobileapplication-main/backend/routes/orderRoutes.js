@@ -2,13 +2,19 @@ import express from "express";
 const router = express.Router();
 
 // Controllers
-import { getAllOrders } from "../controllers/orderControllers.js";
+import { getAllOrders, getUserOrders, createOrder } from "../controllers/orderControllers.js";
 
-//middlewares
+// Middleware
 import auth from "../middlewares/auth.js";
 router.use(auth);
 
-// Example route
+// ✅ Get all orders (admin)
 router.get("/", getAllOrders);
+
+// ✅ Get current user's orders
+router.get("/my", getUserOrders);
+
+// ✅ Create new order (user places order)
+router.post("/", createOrder);
 
 export default router;

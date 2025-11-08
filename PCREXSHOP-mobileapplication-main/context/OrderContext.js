@@ -40,15 +40,23 @@ export const OrderProvider = ({ children }) => {
     );
   }, [orders, loading]);
 
-  const placeOrder = (orderData) => {
-    const newOrder = {
-      id: `order_${Date.now()}`,
-      ...orderData,
-      status: (orderData.paymentMethod === 'GCASH' || orderData.paymentMethod === 'COD') ? 'To Ship' : 'To Pay',
-      orderDate: new Date().toISOString(),
-    };
-    setOrders((prev) => [newOrder, ...prev]);
-  };
+  const placeOrder = async (orderData) => {
+  try {
+    const res = await axios.post(`${BASE_URL}/orders`, orderData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // Add the confirmed order from backend
+    setOrders((prev) => [res.data.order, ...prev]);
+
+    return { success: true, order: res.data.order };
+  } catch (err) {
+    console.error("❌ Failed to place order:", err.response?.data || err.message);
+    return { success: false, error: err.response?.data?.error || "Failed to place order" };
+  }
+};
+
+
 
   const updateOrderStatus = (orderId, nextStatus) => {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: nextStatus } : o)));

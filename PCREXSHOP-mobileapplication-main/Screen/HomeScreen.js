@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  TextInput,
   ScrollView,
   TouchableOpacity,
   Image,
@@ -14,17 +13,11 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useCart } from '../context/CartContext';
 import { useFonts } from 'expo-font';
-
-// Import data
-import Item from '../data/Item.json';
-
-// Import components
 import BannerSlider from '../Components/BannerSlider';
 import CategoryList from '../Components/CategoryList';
 import BestSellerSection from '../Components/BestSellerSection';
 import PreBuiltSection from '../Components/PreBuiltSection';
 import ProductCard from '../Components/ProductCard';
-
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
@@ -45,50 +38,86 @@ const HomeScreen = ({ navigation }) => {
     'Rubik-SemiBold': require('../assets/fonts/Rubik/static/Rubik-SemiBold.ttf'),
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState([]);
   const [bestSellerProducts, setBestSellerProducts] = useState([]);
   const [preBuiltProducts, setPreBuiltProducts] = useState([]);
   const [allProductsDisplay, setAllProductsDisplay] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const { itemCount } = useCart();
 
   useEffect(() => {
-    const processedItems = Item.map(item => ({
-      ...item,
-      category: item.category || { name: 'Unknown' },
-    }));
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('http://192.168.100.45:5000/api/products');
+        const data = await res.json();
 
-    const uniqueCategories = [...new Set(processedItems.map(item => item.category.name))];
-    setCategories(uniqueCategories);
+        const formatted = data.map((item) => {
+          // ✅ Normalize stock
+          const quantity = typeof item.quantity === 'number' ? item.quantity : 0;
 
-    setBestSellerProducts(processedItems.filter(p => p.isBestSeller).slice(0, 8));
-    setPreBuiltProducts(
-      processedItems
-        .filter(p => p.category.name && p.category.name.toLowerCase() === 'pre-built')
-        .slice(0, 8)
-    );
+          // ✅ Normalize images
+          let images = [];
+          if (Array.isArray(item.images) && item.images.length) {
+            images = item.images;
+          } else if (item.image) {
+            images = [item.image];
+          } else if (item.images && typeof item.images === 'string') {
+            images = [item.images];
+          }
 
-    setAllProductsDisplay(processedItems);
+          // ✅ Normalize category
+          const categoryObj = item.category
+            ? typeof item.category === 'string'
+              ? { name: item.category }
+              : item.category.name
+              ? item.category
+              : { name: 'Unknown' }
+            : { name: 'Unknown' };
+
+          return {
+            ...item,
+            quantity,
+            quantity: quantity,
+            images,
+            image: images[0] || null,
+            category: categoryObj,
+          };
+        });
+
+        // ✅ Update state
+        setAllProducts(formatted);
+        setAllProductsDisplay(formatted);
+
+        // ✅ Extract unique categories
+        const uniqueCategories = [...new Set(formatted.map((item) => item.category.name))];
+        setCategories(uniqueCategories);
+
+        // ✅ Filter Best Sellers
+        const bestSellers = formatted.filter((p) => p.isBestSeller).slice(0, 8);
+        setBestSellerProducts(bestSellers);
+
+        // ✅ Filter Pre-Built category safely
+        const preBuilt = formatted
+          .filter(
+            (p) =>
+              p.category?.name &&
+              p.category.name.toLowerCase().includes('pre-built')
+          )
+          .slice(0, 8);
+        setPreBuiltProducts(preBuilt);
+      } catch (err) {
+        console.error('❌ Failed to fetch products:', err);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
-  useEffect(() => {
-    if (searchQuery.trim() !== '') {
-      const filtered = Item.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setAllProductsDisplay(filtered);
-    } else {
-      setAllProductsDisplay(Item);
-    }
-  }, [searchQuery]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* ===== Header ===== */}
+      {/* ✅ Header */}
       <View style={styles.header}>
         <View style={styles.leftHeader}>
           <Image
@@ -127,7 +156,6 @@ const HomeScreen = ({ navigation }) => {
             <Icon name="account-outline" size={26} color={THEME.icons} />
           </TouchableOpacity>
 
-          {/* ✅ Fixed Message Icon */}
           <TouchableOpacity
             onPress={() => navigation.navigate('Messages')}
             style={styles.headerIcon}
@@ -137,22 +165,22 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* ===== Main ScrollView ===== */}
+      {/* ✅ Main Scroll */}
       <ScrollView>
         <BannerSlider />
         <CategoryList categories={categories} navigation={navigation} />
         <BestSellerSection data={bestSellerProducts} navigation={navigation} />
         <PreBuiltSection data={preBuiltProducts} navigation={navigation} />
 
-        {/* ===== All Products Section ===== */}
+        {/* ✅ Just For You Section */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Just For You</Text>
           </View>
 
           <View style={styles.allProductsGrid}>
-            {allProductsDisplay.map(item => (
-              <View key={item.id} style={styles.gridCardContainer}>
+            {allProductsDisplay.map((item) => (
+              <View key={item._id || item.id} style={styles.gridCardContainer}>
                 <ProductCard
                   product={item}
                   onPress={() => navigation.navigate('ProductDetails', { product: item })}

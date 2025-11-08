@@ -1,4 +1,3 @@
-// File: screens/EditProfile.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,14 +9,11 @@ import {
   Image,
   StatusBar,
   SafeAreaView,
-  Platform,
-  Modal,
-  ActivityIndicator
+  ActivityIndicator,
+  Modal
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useFonts } from 'expo-font';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import { useUser } from '../context/UserContext';
 
 // ✅ Toast component
@@ -30,7 +26,6 @@ const Toast = ({ message, isVisible, onHide }) => {
   }, [isVisible, onHide]);
 
   if (!isVisible) return null;
-
   return (
     <Modal transparent animationType="fade" visible={isVisible}>
       <View style={styles.toastOverlay}>
@@ -43,12 +38,6 @@ const Toast = ({ message, isVisible, onHide }) => {
 };
 
 const EditProfile = ({ navigation }) => {
-  const [fontsLoaded] = useFonts({
-    'Rubik-Regular': require('../assets/fonts/Rubik/static/Rubik-Regular.ttf'),
-    'Rubik-Medium': require('../assets/fonts/Rubik/static/Rubik-Medium.ttf'),
-    'Rubik-SemiBold': require('../assets/fonts/Rubik/static/Rubik-SemiBold.ttf'),
-  });
-
   const { user, loading, updateUserProfile } = useUser();
 
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -85,8 +74,12 @@ const EditProfile = ({ navigation }) => {
 
     if (!result.canceled) {
       const uri = result.assets[0].uri;
-      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
-      setProfileImage(`data:image/jpeg;base64,${base64}`);
+      const base64 = await (await fetch(uri)).blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result); // Base64 string
+      };
+      reader.readAsDataURL(base64);
     }
   };
 
@@ -97,7 +90,8 @@ const EditProfile = ({ navigation }) => {
       return;
     }
 
-    const result = await updateUserProfile({
+  const result = await updateUserProfile({
+      userId: user.id, // ✅ must be 'userId' to match backend
       fullName,
       email,
       phone,
@@ -114,7 +108,7 @@ const EditProfile = ({ navigation }) => {
     }
   };
 
-  if (!fontsLoaded || loading) {
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#074ec2" />

@@ -48,7 +48,7 @@ const ProductDetails = ({ route, navigation }) => {
   const [isSuccessToastVisible, setSuccessToastVisible] = useState(false);
 
   // Determine if the product is out of stock
-  const isOutOfStock = product.stock === 0;
+  const isOutOfStock = product.quantity === 0;
 
   if (!fontsLoaded) {
     return null;
@@ -102,10 +102,10 @@ const ProductDetails = ({ route, navigation }) => {
   };
   
   const increaseQuantity = () => {
-    if (quantity < product.stock) {
+    if (quantity < product.quantity) {
       setQuantity(prev => prev + 1);
     } else {
-      setStockModalMessage(`You can only purchase up to ${product.stock} items.`);
+      setStockModalMessage(`You can only purchase up to ${product.quantity} items.`);
       setStockModalVisible(true);
     }
   };
@@ -148,21 +148,21 @@ const ProductDetails = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContentContainer}>
         <View style={styles.carouselContainer}>
           <FlatList
-            data={product.images}
-            renderItem={({ item }) => (
-              <Image
-                source={{ uri: item }}
-                style={styles.carouselImage}
-                resizeMode="cover"
+                data={product.images}
+                renderItem={({ item }) => (
+                  <Image
+                    source={{ uri: item }}
+                    style={styles.carouselImage}
+                    resizeMode="cover"
+                  />
+                )}
+                keyExtractor={(item, index) => `${item}-${index}`}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
               />
-            )}
-            keyExtractor={(item, index) => `${item}-${index}`}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={viewabilityConfig}
-          />
+
+
           <View style={styles.indicatorContainer}>
             {product.images.map((_, index) => (
               <View
@@ -188,7 +188,7 @@ const ProductDetails = ({ route, navigation }) => {
             <View style={styles.infoBox}>
               <Icon name="package-variant-closed" size={20} color={'#EE2323'} />
               <Text style={[styles.infoText, isOutOfStock && styles.outOfStockText]}>
-                {isOutOfStock ? 'Out of Stock' : `${product.stock} in stock`}
+                {isOutOfStock ? 'Out of Stock' : `${product.quantity} in stock`}
               </Text>
             </View>
           </View>

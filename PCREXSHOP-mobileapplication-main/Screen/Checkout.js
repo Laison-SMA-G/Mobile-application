@@ -118,26 +118,35 @@ const Checkout = ({ route, navigation }) => {
   };
 
   const confirmOrderAction = () => {
-    setShowConfirmOrderModal(false);
-    const orderDetails = {
-      items: checkoutItems,
-      shippingAddress: selectedAddress,
-      paymentMethod: paymentMethod,
-      shippingProvider: selectedShippingProvider,
-      subtotal: subtotal,
-      shippingFee: finalShippingFee,
-      total: total,
-      orderDate: new Date().toISOString(),
-    };
+  setShowConfirmOrderModal(false);
 
-    placeOrder(orderDetails);
-
-    // Decrease stock for the items that were checked out.
-    // Assuming decreaseStock also removes these items from the cart context.
-    decreaseStock(checkoutItems);
-
-    navigation.navigate('OrderSuccess');
+  // ✅ Ensure product IDs are sent to backend
+  const orderDetails = {
+    items: checkoutItems.map(item => ({
+      _id: item._id || item.id,  // use MongoDB _id if available, fallback to id
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    })),
+    shippingAddress: selectedAddress,
+    paymentMethod,
+    shippingProvider: selectedShippingProvider,
+    subtotal,
+    shippingFee: finalShippingFee,
+    total,
+    orderDate: new Date().toISOString(),
   };
+
+  // ✅ Send to backend
+  placeOrder(orderDetails);
+
+  // ✅ Decrease stock locally in cart
+  decreaseStock(checkoutItems);
+
+  // ✅ Navigate to success page
+  navigation.navigate("OrderSuccess");
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

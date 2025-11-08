@@ -19,10 +19,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets//PCREXBIGLOGOSPLASH.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.laison.PCREXSHOPmobileapplication"
     },
     "web": {
       "favicon": "./assets//PCREXBIGLOGOSPLASH.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2c49d9e3-91b2-4d6a-8577-981358b24f09"
+      }
     }
   }
 }

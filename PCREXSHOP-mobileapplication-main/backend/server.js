@@ -1,26 +1,49 @@
+// backend/server.js
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
-import connection from "./config/connection.js"; // mongodb connection
-const app = express(); // express app instance
-const PORT = process.env.PORT || 5000; // server port
+import path from "path";
+import { fileURLToPath } from "url";
+import connection from "./config/connection.js";
 
-// routes
+// ✅ Import Routes
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import salesRoutes from "./routes/salesRoutes.js";
 
-// MongoDB connection
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ✅ MongoDB Atlas connection
 await connection();
 
-//  Middleware
-app.use(cors({ origin: "*", credentials: true }));
-app.use(express.json()); 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Routes
+// ✅ Middleware setup
+
+app.use(cors({ origin: "*", credentials: true }));
+app.use(express.json({ limit: "10mb" })); // for Base64 image upload
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// ✅ Serve static files from /uploads folder
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api", chatRoutes);
+app.use("/api/sales", salesRoutes);
 
-// Start server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ Server start
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://192.168.100.45:${PORT}`);
+  console.log(`✅ Static files served from /uploads`);
+});

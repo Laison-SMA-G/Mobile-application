@@ -171,12 +171,13 @@ const formatPrice = (value) => {
           </View>
 
           <FlatList
-            data={cartItems}
-            renderItem={renderCartItem}
-            keyExtractor={item => item.id.toString()}
-            contentContainerStyle={styles.listContentContainer}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
+                data={cartItems}
+                renderItem={renderCartItem}
+                keyExtractor={item => (item.id || item._id || Math.random()).toString()} // <-- FIXED
+                contentContainerStyle={styles.listContentContainer}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                 />
+
           <View style={styles.footer}>
             <View style={styles.totalContainer}>
               <Text style={styles.totalLabel}>Total ({selectedItemCount} items):</Text>
