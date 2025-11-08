@@ -15,7 +15,7 @@ import { useFonts } from "expo-font";
 import { useCart } from "../context/CartContext";
 
 // ✅ Base URL (still here for reference, but not used for images)
-const BASE_URL = "http://192.168.100.45:5000";
+export const API_URL = "https://pcrex-server.onrender.com";
 
 // ✅ App Theme
 const THEME = {

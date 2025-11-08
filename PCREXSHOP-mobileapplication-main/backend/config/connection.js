@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import "dotenv/config";
-const URI = process.env.MONGO_URI;
+const URI = "https://pcrex-server.onrender.com";
 
 const connection = async () => {
   try {

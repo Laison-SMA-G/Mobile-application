@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-export const BASE_URL = 'http://192.168.100.45:5000/api';
+export const API_URL = "https://pcrex-server.onrender.com";
 axios.defaults.baseURL = BASE_URL;
 
 const UserContext = createContext(null);

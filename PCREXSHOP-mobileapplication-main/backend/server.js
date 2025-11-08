@@ -16,7 +16,7 @@ import chatRoutes from "./routes/chatRoutes.js";
 import salesRoutes from "./routes/salesRoutes.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+export const API_URL = "https://pcrex-server.onrender.com";
 
 // ✅ MongoDB Atlas connection
 await connection();
