@@ -1,13 +1,19 @@
+// server/config/connection.js
 import mongoose from "mongoose";
 import "dotenv/config";
-export const API_URL = "https://pcrex-server.onrender.com";
+
+const URI = process.env.MONGO_URI; // Loaded from .env or Render environment variables
 
 const connection = async () => {
   try {
-    await mongoose.connect(URI);
-    console.log("Connected to MongoDB");
+    if (!URI) throw new Error("MONGO_URI is not defined. Check your .env or Render env vars.");
+    await mongoose.connect(URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("✅ Connected to MongoDB Atlas");
   } catch (error) {
-    console.log(error);
+    console.error("❌ MongoDB connection error:", error);
   }
 };
 
