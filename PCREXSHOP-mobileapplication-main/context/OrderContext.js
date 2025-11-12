@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useUser, BASE_URL } from './UserContext.js';
+import { useUser } from "./UserContext.js";
+
 
 const ORDERS_STORAGE_KEY = '@MyApp:orders_v2';
 const OrderContext = createContext(null);
@@ -19,8 +20,8 @@ export const OrderProvider = ({ children }) => {
     const fetchOrders = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/orders`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+  headers: { Authorization: `Bearer ${token}` },
+});
         setOrders(res.data);
       } catch (err) {
         console.error('Failed to fetch orders:', err);
@@ -43,9 +44,8 @@ export const OrderProvider = ({ children }) => {
   const placeOrder = async (orderData) => {
   try {
     const res = await axios.post(`${BASE_URL}/orders`, orderData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
+  headers: { Authorization: `Bearer ${token}` },
+});
     // Add the confirmed order from backend
     setOrders((prev) => [res.data.order, ...prev]);
 

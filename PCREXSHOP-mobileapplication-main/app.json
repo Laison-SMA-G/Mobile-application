@@ -2,6 +2,8 @@
   "expo": {
     "name": "PCREXSHOP-mobileapplication",
     "slug": "PCREXSHOP-mobileapplication",
+    "platforms": ["ios", "android", "web"],
+    "jsEngine": "jsc",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets//PCREXBIGLOGOSPLASH.png",

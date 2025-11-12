@@ -3,36 +3,37 @@ import Product from "../models/Product.js";
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find().lean();
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
 
     const formattedProducts = products.map((p) => {
+      // Main image
       let imageUrl = null;
-
       if (p.image) {
-        // 1️⃣ Base64 stored in DB
-        if (p.image.startsWith("data:image")) {
+        if (p.image.startsWith("uploads/")) {
+          imageUrl = `${baseUrl}/${p.image}`;
+        } else if (p.image.startsWith("/uploads/")) {
+          imageUrl = `${baseUrl}${p.image}`;
+        } else if (p.image.startsWith("http")) {
           imageUrl = p.image;
-        }
-        // 2️⃣ Relative path in uploads folder
-        else if (p.image.startsWith("uploads/")) {
-          imageUrl = `${req.protocol}://${req.get("host")}/${p.image}`;
-        }
-        // 3️⃣ Fallback (shouldn’t happen)
-        else {
-          imageUrl = null;
         }
       }
 
+      // Images array
+      const imagesArray =
+        Array.isArray(p.images) && p.images.length
+          ? p.images.map((img) =>
+              img.startsWith("http")
+                ? img
+                : `${baseUrl}/${img.replace(/^\/+/, "")}`
+            )
+          : imageUrl
+          ? [imageUrl]
+          : [];
+
       return {
-        _id: p._id,
-        name: p.name,
-        description: p.description,
-        price: p.price,
-        category: p.category,
-        quantity: p.quantity,
+        ...p,
         image: imageUrl,
-        images: p.images || [],
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
+        images: imagesArray,
       };
     });
 
