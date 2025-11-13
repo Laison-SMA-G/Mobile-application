@@ -13,27 +13,42 @@ export const OrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load orders from backend if logged in
+  // Load cached orders first
+  useEffect(() => {
+    const loadCachedOrders = async () => {
+      try {
+        const savedOrders = await AsyncStorage.getItem(ORDERS_STORAGE_KEY);
+        if (savedOrders) setOrders(JSON.parse(savedOrders));
+      } catch (e) {
+        console.error('Failed to load cached orders:', e);
+      }
+    };
+    loadCachedOrders();
+  }, []);
+
+  // Fetch fresh orders from backend
   useEffect(() => {
     if (!token) return setLoading(false);
 
     const fetchOrders = async () => {
       try {
         const res = await axios.get(`${BASE_URL}/orders`, {
-  headers: { Authorization: `Bearer ${token}` },
-});
-        setOrders(res.data);
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Sort newest first
+        const sortedOrders = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setOrders(sortedOrders);
       } catch (err) {
-        console.error('Failed to fetch orders:', err);
-        setOrders([]);
+        console.error('Failed to fetch orders:', err.response?.data || err.message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchOrders();
   }, [token]);
 
-  // Persist orders to AsyncStorage as backup
+  // Persist orders locally
   useEffect(() => {
     if (loading) return;
     AsyncStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders)).catch((e) =>
@@ -41,32 +56,35 @@ export const OrderProvider = ({ children }) => {
     );
   }, [orders, loading]);
 
+  // Place new order
   const placeOrder = async (orderData) => {
-  try {
-    const res = await axios.post(`${BASE_URL}/orders`, orderData, {
-  headers: { Authorization: `Bearer ${token}` },
-});
-    // Add the confirmed order from backend
-    setOrders((prev) => [res.data.order, ...prev]);
-
-    return { success: true, order: res.data.order };
-  } catch (err) {
-    console.error("❌ Failed to place order:", err.response?.data || err.message);
-    return { success: false, error: err.response?.data?.error || "Failed to place order" };
-  }
-};
-
-
-
-  const updateOrderStatus = (orderId, nextStatus) => {
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: nextStatus } : o)));
+    try {
+      const res = await axios.post(`${BASE_URL}/orders`, orderData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setOrders((prev) => [res.data.order, ...prev]);
+      return { success: true, order: res.data.order };
+    } catch (err) {
+      console.error("❌ Failed to place order:", err.response?.data || err.message);
+      return { success: false, error: err.response?.data?.error || "Failed to place order" };
+    }
   };
 
-  const cancelOrder = (orderId) => {
+  // Update order status
+  const updateOrderStatus = (_id, nextStatus) => {
+    setOrders((prev) =>
+      prev
+        .map((o) => (o._id === _id ? { ...o, status: nextStatus } : o))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    );
+  };
+
+  // Cancel order
+  const cancelOrder = (_id) => {
     let wasCancelled = false;
     setOrders((prev) =>
       prev.map((o) => {
-        if (o.id === orderId && (o.status === 'To Pay' || o.status === 'To Ship')) {
+        if (o._id === _id && (o.status === 'To Pay' || o.status === 'To Ship')) {
           wasCancelled = true;
           return { ...o, status: 'Cancelled' };
         }

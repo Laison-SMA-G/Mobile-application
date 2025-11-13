@@ -1,5 +1,18 @@
-import React, { useState, useRef, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Modal, Pressable, Platform } from "react-native";
+// components/ProductCard.js
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Dimensions,
+  Platform,
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useCart } from "../context/CartContext";
 import { useFonts } from "expo-font";
@@ -10,11 +23,13 @@ const THEME = {
   COLORS: { primary: "#074ec2", text: "#1C1C1C", card: "#FFFFFF", placeholder: "#F0F0F0" },
 };
 
+// --- Image source utility ---
 const getImageSource = (uri) => {
-  const PLACEHOLDER = { uri: "https://placehold.co/150x150?text=No+Image" };
-  if (!uri || typeof uri !== "string") return PLACEHOLDER;
+  const PLACEHOLDER = { uri: `${BASE_URL}/uploads/placeholder.png` };
+  if (!uri || typeof uri !== "string" || uri.trim() === "") return PLACEHOLDER;
   if (uri.startsWith("http") || uri.startsWith("data:image")) return { uri };
-  return PLACEHOLDER;
+  if (uri.startsWith("/")) return { uri: `${BASE_URL}${uri}` };
+  return { uri: `${BASE_URL}/${uri.replace(/\\/g, "/")}` };
 };
 
 const formatPrice = (value) => {
@@ -35,7 +50,17 @@ const ProductCard = ({ product, onPress }) => {
   const [isStockModalVisible, setStockModalVisible] = useState(false);
   const [stockModalMessage, setStockModalMessage] = useState("");
   const [isSuccessToastVisible, setSuccessToastVisible] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [fadeAnim] = useState(new Animated.Value(0));
+
+  // Fullscreen Image Gallery
+  const [isGalleryVisible, setGalleryVisible] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+
+  const images = Array.isArray(product.images) && product.images.length
+    ? product.images
+    : product.image
+      ? [product.image]
+      : [null]; // fallback
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
@@ -66,14 +91,24 @@ const ProductCard = ({ product, onPress }) => {
     }
   };
 
+  const openGallery = (index) => {
+    setGalleryIndex(index);
+    setGalleryVisible(true);
+  };
+
+  const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
   return (
     <>
       <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
         <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
-          <View style={styles.imageContainer}>
-            <Image source={getImageSource(product.image)} style={styles.image} resizeMode="cover" />
-            {isOutOfStock && <View style={styles.outOfStockOverlay}><Text style={styles.outOfStockText}>Out of Stock</Text></View>}
-          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {images.map((img, idx) => (
+              <TouchableOpacity key={idx} onPress={() => openGallery(idx)}>
+                <Image source={getImageSource(img)} style={styles.image} resizeMode="cover" />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
           <View style={styles.infoContainer}>
             <View style={styles.titleRow}>
@@ -95,9 +130,12 @@ const ProductCard = ({ product, onPress }) => {
               </TouchableOpacity>
             </View>
           </View>
+
+          {isOutOfStock && <View style={styles.outOfStockOverlay}><Text style={styles.outOfStockText}>Out of Stock</Text></View>}
         </TouchableOpacity>
       </Animated.View>
 
+      {/* Stock Modal */}
       <Modal visible={isStockModalVisible} transparent animationType="fade" onRequestClose={() => setStockModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setStockModalVisible(false)}>
           <Pressable style={styles.alertModalContainer}>
@@ -111,11 +149,31 @@ const ProductCard = ({ product, onPress }) => {
         </Pressable>
       </Modal>
 
+      {/* Success Toast */}
       <Modal visible={isSuccessToastVisible} transparent animationType="fade">
         <View style={styles.toastOverlay}>
           <View style={styles.toastContainer}>
             <Text style={styles.toastText}>Added to Cart!</Text>
           </View>
+        </View>
+      </Modal>
+
+      {/* Fullscreen Gallery */}
+      <Modal visible={isGalleryVisible} transparent animationType="fade">
+        <View style={styles.galleryOverlay}>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            contentOffset={{ x: SCREEN_WIDTH * galleryIndex, y: 0 }}
+            showsHorizontalScrollIndicator={false}
+          >
+            {images.map((img, idx) => (
+              <Image key={idx} source={getImageSource(img)} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
+            ))}
+          </ScrollView>
+          <TouchableOpacity style={styles.galleryCloseButton} onPress={() => setGalleryVisible(false)}>
+            <Icon name="close-circle" size={36} color="#FFF" />
+          </TouchableOpacity>
         </View>
       </Modal>
     </>
@@ -125,8 +183,7 @@ const ProductCard = ({ product, onPress }) => {
 const styles = StyleSheet.create({
   wrapper: { flex: 1, margin: 8 },
   container: { flex: 1, backgroundColor: THEME.COLORS.card, borderRadius: 15, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 1, elevation: Platform.OS === "android" ? 1 : 0 },
-  imageContainer: { width: "100%", height: 140, backgroundColor: THEME.COLORS.placeholder, justifyContent: "center", alignItems: "center" },
-  image: { width: "100%", height: "100%" },
+  image: { width: 100, height: 100, borderRadius: 8, marginRight: 8 },
   outOfStockOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" },
   outOfStockText: { color: THEME.COLORS.card, fontSize: 16, fontFamily: "Rubik-Bold" },
   infoContainer: { flex: 1, padding: 12, justifyContent: "space-between" },
@@ -147,6 +204,9 @@ const styles = StyleSheet.create({
   toastOverlay: { flex: 1, justifyContent: "center", alignItems: "center" },
   toastContainer: { backgroundColor: "#4BB543", borderRadius: 10, paddingVertical: 15, paddingHorizontal: 25, alignItems: "center" },
   toastText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Rubik-Medium", textAlign: "center" },
+  galleryOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.95)", justifyContent: "center", alignItems: "center" },
+  fullscreenImage: { height: Dimensions.get("window").width, resizeMode: "contain", marginVertical: 20 },
+  galleryCloseButton: { position: "absolute", top: 40, right: 20 },
 });
 
 export default ProductCard;
