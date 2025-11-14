@@ -1,4 +1,4 @@
-// components/ProductCard.js
+// ProductCard.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -16,20 +16,10 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useCart } from "../context/CartContext";
 import { useFonts } from "expo-font";
-
-export const BASE_URL = "http://192.168.100.45:5000";
+import { getImageUri } from "../utils/getImageUri";
 
 const THEME = {
   COLORS: { primary: "#074ec2", text: "#1C1C1C", card: "#FFFFFF", placeholder: "#F0F0F0" },
-};
-
-// --- Image source utility ---
-const getImageSource = (uri) => {
-  const PLACEHOLDER = { uri: `${BASE_URL}/uploads/placeholder.png` };
-  if (!uri || typeof uri !== "string" || uri.trim() === "") return PLACEHOLDER;
-  if (uri.startsWith("http") || uri.startsWith("data:image")) return { uri };
-  if (uri.startsWith("/")) return { uri: `${BASE_URL}${uri}` };
-  return { uri: `${BASE_URL}/${uri.replace(/\\/g, "/")}` };
 };
 
 const formatPrice = (value) => {
@@ -52,15 +42,13 @@ const ProductCard = ({ product, onPress }) => {
   const [isSuccessToastVisible, setSuccessToastVisible] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
-  // Fullscreen Image Gallery
   const [isGalleryVisible, setGalleryVisible] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
 
-  const images = Array.isArray(product.images) && product.images.length
+  // Ensure images array always exists, fallback to local placeholder
+  const images = product.images && product.images.length
     ? product.images
-    : product.image
-      ? [product.image]
-      : [null]; // fallback
+    : [product.image || null];
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
@@ -105,7 +93,7 @@ const ProductCard = ({ product, onPress }) => {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {images.map((img, idx) => (
               <TouchableOpacity key={idx} onPress={() => openGallery(idx)}>
-                <Image source={getImageSource(img)} style={styles.image} resizeMode="cover" />
+                <Image source={getImageUri(img)} style={styles.image} resizeMode="cover" />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -168,7 +156,7 @@ const ProductCard = ({ product, onPress }) => {
             showsHorizontalScrollIndicator={false}
           >
             {images.map((img, idx) => (
-              <Image key={idx} source={getImageSource(img)} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
+              <Image key={idx} source={getImageUri(img)} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
             ))}
           </ScrollView>
           <TouchableOpacity style={styles.galleryCloseButton} onPress={() => setGalleryVisible(false)}>

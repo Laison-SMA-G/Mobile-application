@@ -9,13 +9,13 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
-  Image,
 } from "react-native";
 import { useFonts } from "expo-font";
-import { useCart } from "../context/CartContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useCart } from "../context/CartContext";
 import CategoryList from "../Components/CategoryList";
 import ProductCard from "../Components/ProductCard";
+import { getImageUri } from "../utils/getImageUri";
 
 const THEME = {
   primary: "#074ec2",
@@ -23,17 +23,6 @@ const THEME = {
   text: "#1C1C1C",
   cardBackground: "#FFFFFF",
   icons: "#FFFFFF",
-};
-
-const BASE_URL = "http://192.168.100.45:5000";
-
-// --- Image utility ---
-const getImageSource = (uri) => {
-  const PLACEHOLDER = { uri: `${BASE_URL}/uploads/placeholder.png` };
-  if (!uri || typeof uri !== "string") return PLACEHOLDER;
-  if (uri.startsWith("http") || uri.startsWith("data:image")) return { uri };
-  if (uri.startsWith("/")) return { uri: `${BASE_URL}${uri}` };
-  return { uri: `${BASE_URL}/${uri.replace(/\\/g, "/")}` };
 };
 
 const Products = ({ navigation }) => {
@@ -53,26 +42,27 @@ const Products = ({ navigation }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/products`);
+        const res = await fetch("https://192.168.100.45:5000/api/products");
         const data = await res.json();
 
         const formatted = data.map((item) => {
           const quantity = typeof item.quantity === "number" ? item.quantity : 0;
 
+          // Always create images array with getImageUri
           let images = [];
           if (Array.isArray(item.images) && item.images.length) {
-            images = item.images;
+            images = item.images.map((img) => getImageUri(img));
           } else if (item.image) {
-            images = [item.image];
+            images = [getImageUri(item.image)];
+          } else {
+            // Use local placeholder directly
+            images = [getImageUri(null)];
           }
-
-          // Ensure full URL
-          images = images.map((img) => getImageSource(img).uri);
 
           return {
             ...item,
             quantity,
-            image: images[0] || getImageSource(null).uri,
+            image: images[0],
             images,
           };
         });
@@ -80,7 +70,7 @@ const Products = ({ navigation }) => {
         setAllProducts(formatted);
         setFilteredProducts(formatted);
 
-        // Unique categories
+        // Extract unique categories
         const uniqueCategories = [
           ...new Set(
             formatted.map((i) => i.category?.name || i.category || "Unknown")
@@ -95,7 +85,6 @@ const Products = ({ navigation }) => {
     fetchProducts();
   }, []);
 
-  // Search filter
   useEffect(() => {
     let result = allProducts;
     if (searchQuery.trim() !== "") {
@@ -128,10 +117,7 @@ const Products = ({ navigation }) => {
         </TouchableOpacity>
 
         <View style={styles.rightIcons}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("SearchProduct")}
-            style={styles.searchIconContainer}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("SearchProduct")} style={styles.searchIconContainer}>
             <Icon name="magnify" size={26} color={THEME.icons} />
           </TouchableOpacity>
 
@@ -147,12 +133,7 @@ const Products = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-            <Icon
-              name="account-outline"
-              size={26}
-              color={THEME.cardBackground}
-              style={styles.headerIcon}
-            />
+            <Icon name="account-outline" size={26} color={THEME.cardBackground} style={styles.headerIcon} />
           </TouchableOpacity>
         </View>
       </View>
@@ -179,28 +160,11 @@ const Products = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: Platform.OS === "ios" ? 80 : 80, backgroundColor: THEME.background },
-  header: {
-    backgroundColor: THEME.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
+  header: { backgroundColor: THEME.primary, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   rightIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   searchIconContainer: { padding: 5 },
   headerIcon: { marginLeft: 4 },
-  badgeContainer: {
-    position: "absolute",
-    top: -4,
-    right: -6,
-    backgroundColor: "#EE2323",
-    borderRadius: 9,
-    width: 18,
-    height: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  badgeContainer: { position: "absolute", top: -4, right: -6, backgroundColor: "#EE2323", borderRadius: 9, width: 18, height: 18, justifyContent: "center", alignItems: "center" },
   badgeText: { color: "#FFFFFF", fontSize: 10, fontWeight: "bold" },
   gridCardContainer: { width: "50%" },
   noResultsContainer: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 50 },

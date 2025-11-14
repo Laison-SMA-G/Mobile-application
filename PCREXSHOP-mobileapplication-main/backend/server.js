@@ -33,6 +33,15 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ Mongo error:", err.message));
 
+// Fix __dirname for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Allow access to uploads folder
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+
 // ✅ Middleware
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE"] }));
 app.use(express.json());
@@ -75,10 +84,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => console.log("🔴 Socket disconnected"));
 });
 
-// ✅ Serve static (for production)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, "public")));
 
 // ✅ Listen on all network interfaces (important for mobile access)
 server.listen(PORT, "0.0.0.0", () => {
