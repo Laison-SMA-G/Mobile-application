@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node backend server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "deploy": "cd ../frontend && npm install && npm run build && cd ../backend && npm install && node index.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
