@@ -1,16 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Image, Alert, } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Image, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFonts } from 'expo-font';
 import { useCart } from '../context/CartContext';
-// import { Swipeable } from 'react-native-gesture-handler'; // Remove Swipeable import
 
 const Cart = ({ navigation }) => {
   const { cartItems, removeFromCart, clearCart, increaseQuantity, decreaseQuantity } = useCart();
   
-  // State to track selected items for checkout
   const [selectedItems, setSelectedItems] = useState(new Set());
-  const [selectAll, setSelectAll] = useState(false); // New state for select all
+  const [selectAll, setSelectAll] = useState(false);
 
   const [fontsLoaded] = useFonts({
     'Rubik-Regular': require('../assets/fonts/Rubik/static/Rubik-Regular.ttf'),
@@ -19,7 +17,6 @@ const Cart = ({ navigation }) => {
     'Rubik-SemiBold': require('../assets/fonts/Rubik/static/Rubik-SemiBold.ttf'),
   });
 
-  // Effect to update 'selectAll' state if cartItems or selectedItems change
   useEffect(() => {
     if (cartItems.length > 0 && selectedItems.size === cartItems.length) {
       setSelectAll(true);
@@ -28,107 +25,94 @@ const Cart = ({ navigation }) => {
     }
   }, [cartItems, selectedItems]);
 
-  // --- Currency Formatting Utility ---
-const formatPrice = (value) => {
-  const num = parseFloat(value);
-
-  // Check if integer or may decimal
-  if (Number.isInteger(num)) {
-    return `₱${num.toLocaleString()}`;
-  } else {
-    return `₱${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-};
-
-  // Toggle selection for an item
-  const handleToggleSelection = (itemId) => {
-    const newSelection = new Set(selectedItems);
-    if (newSelection.has(itemId)) {
-      newSelection.delete(itemId);
+  const formatPrice = (value) => {
+    const num = parseFloat(value) || 0;
+    if (Number.isInteger(num)) {
+      return `₱${num.toLocaleString()}`;
     } else {
-      newSelection.add(itemId);
+      return `₱${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
+  };
+
+  const handleToggleSelection = (itemId) => {
+    if (!itemId) return;
+    const newSelection = new Set(selectedItems);
+    if (newSelection.has(itemId)) newSelection.delete(itemId);
+    else newSelection.add(itemId);
     setSelectedItems(newSelection);
   };
   
-  // Toggle select all items
   const handleSelectAll = () => {
-    if (selectAll) {
-      setSelectedItems(new Set()); // Deselect all
-    } else {
-      const allItemIds = new Set(cartItems.map(item => item.id));
-      setSelectedItems(allItemIds); // Select all
-    }
+    if (selectAll) setSelectedItems(new Set());
+    else setSelectedItems(new Set(cartItems.map(item => item.id || item._id)));
     setSelectAll(!selectAll);
   };
 
-  // Calculate total price and count ONLY for selected items
   const { selectedTotalPrice, selectedItemCount } = useMemo(() => {
-    let total = 0;
-    let count = 0;
+    let total = 0, count = 0;
     cartItems.forEach(item => {
-      if (selectedItems.has(item.id)) {
-        total += parseFloat(item.price) * item.quantity;
-        count += item.quantity;
+      const id = item.id || item._id;
+      if (id && selectedItems.has(id)) {
+        total += (parseFloat(item.price) || 0) * (item.quantity || 1);
+        count += item.quantity || 1;
       }
     });
     return { selectedTotalPrice: total, selectedItemCount: count };
   }, [cartItems, selectedItems]);
-
 
   const handleProceedToCheckout = () => {
     if (selectedItems.size === 0) {
       Alert.alert("No Items Selected", "Please select items to proceed to checkout.");
       return;
     }
-    const itemsToCheckout = cartItems.filter(item => selectedItems.has(item.id));
-    // Pass only the selected items to the checkout screen
-    navigation.navigate('Checkout', { items: itemsToCheckout }); 
+    const itemsToCheckout = cartItems.filter(item => selectedItems.has(item.id || item._id));
+    navigation.navigate('Checkout', { items: itemsToCheckout });
   };
   
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
-  // Removed renderRightActions and Swipeable
+  const renderCartItem = ({ item }) => {
+    const itemId = item.id || item._id;
+    const imageSource = item.images && item.images.length > 0 ? item.images[0] : null;
 
-  const renderCartItem = ({ item }) => (
-    // Removed Swipeable wrapper
+    return (
       <View style={styles.itemContainer}>
-        <TouchableOpacity onPress={() => handleToggleSelection(item.id)}>
+        <TouchableOpacity onPress={() => handleToggleSelection(itemId)}>
           <Icon 
-            name={selectedItems.has(item.id) ? 'checkbox-marked' : 'checkbox-blank-outline'}
+            name={selectedItems.has(itemId) ? 'checkbox-marked' : 'checkbox-blank-outline'}
             size={24}
-            color={selectedItems.has(item.id) ? '#22c55e' : '#9ca3af'}
+            color={selectedItems.has(itemId) ? '#22c55e' : '#9ca3af'}
             style={styles.checkbox}
           />
         </TouchableOpacity>
-        <Image
-            source={{ uri: item.images && item.images.length > 0 ? item.images[0] : undefined }}
-            style={styles.itemImage}
-        />
+        {imageSource ? (
+          <Image source={imageSource} style={styles.itemImage} />
+        ) : (
+          <View style={[styles.itemImage, { backgroundColor: '#eee' }]} />
+        )}
         <View style={styles.itemDetails}>
-            <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-            <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
+          <Text style={styles.itemName} numberOfLines={2}>{item.name || 'Unnamed Product'}</Text>
+          <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
         </View>
         <View style={styles.quantityContainer}>
           <TouchableOpacity 
             style={styles.quantityButton} 
-            onPress={() => item.quantity === 1 ? removeFromCart(item.id) : decreaseQuantity(item.id)}
+            onPress={() => (item.quantity === 1 ? removeFromCart(itemId) : decreaseQuantity(itemId))}
           >
             <Icon name={item.quantity === 1 ? "trash-can-outline" : "minus"} size={20} color="#E31C25" />
           </TouchableOpacity>
-          <Text style={styles.quantityText}>{item.quantity}</Text>
+          <Text style={styles.quantityText}>{item.quantity || 1}</Text>
           <TouchableOpacity 
             style={styles.quantityButton} 
-            onPress={() => increaseQuantity(item.id)}
-            disabled={item.quantity >= item.stock} // Disable if quantity reaches stock limit
+            onPress={() => increaseQuantity(itemId)}
+            disabled={item.quantity >= item.stock} 
           >
             <Icon name="plus" size={20} color="#22c55e" />
           </TouchableOpacity>
         </View>
       </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -141,9 +125,7 @@ const formatPrice = (value) => {
           <TouchableOpacity onPress={clearCart}>
             <Text style={styles.clearAllButtonText}>Clear All</Text>
           </TouchableOpacity>
-        ) : (
-          <View style={{ width: 28 }} />
-        )}
+        ) : <View style={{ width: 28 }} />}
       </View>
 
       {cartItems.length === 0 ? (
@@ -157,7 +139,6 @@ const formatPrice = (value) => {
         </View>
       ) : (
         <>
-          {/* Select All Option */}
           <View style={styles.selectAllContainer}>
             <TouchableOpacity onPress={handleSelectAll} style={styles.selectAllButton}>
               <Icon 
@@ -171,12 +152,12 @@ const formatPrice = (value) => {
           </View>
 
           <FlatList
-                data={cartItems}
-                renderItem={renderCartItem}
-                keyExtractor={item => (item.id || item._id || Math.random()).toString()} // <-- FIXED
-                contentContainerStyle={styles.listContentContainer}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
-                 />
+            data={cartItems}
+            renderItem={renderCartItem}
+            keyExtractor={item => (item.id || item._id || Math.random()).toString()}
+            contentContainerStyle={styles.listContentContainer}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+          />
 
           <View style={styles.footer}>
             <View style={styles.totalContainer}>
@@ -198,190 +179,36 @@ const formatPrice = (value) => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#FAFAFA',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 15,
-        paddingVertical: 12,
-        backgroundColor: '#074ec2', // White header background
-    },
-    headerTitle: {
-        fontFamily: 'Rubik-SemiBold',
-        fontSize: 18,
-        color: '#FFFFFF',
-    },
-    clearAllButtonText: {
-        fontFamily: 'Rubik-Regular',
-        fontSize: 14,
-        color: '#FFFFFF', // Red color for clear all
-    },
-    content: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        backgroundColor: '#FFFFFF', // White content background for empty cart
-    },
-    emptyText: {
-        fontFamily: 'Rubik-SemiBold',
-        fontSize: 20,
-        color: '#333333',
-        marginTop: 15,
-    },
-    subText: {
-        fontFamily: 'Rubik-Regular',
-        fontSize: 14,
-        color: '#666666',
-        textAlign: 'center',
-        marginTop: 5,
-        marginBottom: 20,
-    },
-    shopButton: {
-        backgroundColor: '#074ec2', // Primary blue
-        paddingVertical: 12,
-        paddingHorizontal: 30,
-        borderRadius: 8,
-        marginTop: 10,
-    },
-    shopButtonText: {
-        fontFamily: 'Rubik-Medium',
-        fontSize: 16,
-        color: '#FFFFFF',
-    },
-    listContentContainer: {
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-    },
-    itemContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10, // Spacing between items
-       borderWidth: 1,
-       borderColor: '#eee',
-    },
-    checkbox: {
-        marginRight: 10,
-    },
-    itemImage: {
-        width: 70,
-        height: 70,
-        borderRadius: 8,
-        marginRight: 10,
-        resizeMode: 'cover',
-    },
-    itemDetails: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    itemName: {
-        fontFamily: 'Rubik-Medium',
-        fontSize: 14,
-        color: '#333333',
-        marginBottom: 4,
-    },
-    itemPrice: {
-        fontFamily: 'Rubik-SemiBold',
-        fontSize: 15,
-        color: '#074ec2', // Primary blue for price
-    },
-    quantityContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F0F2F5', // Light grey background for quantity controls
-        borderRadius: 20,
-        paddingVertical: 5,
-        paddingHorizontal: 8,
-        marginLeft: 10,
-    },
-    quantityButton: {
-        padding: 0,
-    },
-    quantityText: {
-        fontFamily: 'Rubik-Medium',
-        fontSize: 15,
-        color: '#1C1C1C',
-        marginHorizontal: 10,
-    },
-    separator: {
-        height: 0, // No visible separator if padding is used on content container
-    },
-    footer: {
-        backgroundColor: '#FFFFFF',
-        borderTopWidth: 1,
-        borderTopColor: '#EEEEEE',
-        paddingHorizontal: 15,
-        paddingVertical: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        elevation: 5,
-    },
-    totalContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    totalLabel: {
-        fontFamily: 'Rubik-Regular',
-        fontSize: 15,
-        color: '#666666',
-    },
-    totalPrice: {
-        fontFamily: 'Rubik-Bold',
-        fontSize: 18,
-        color: '#074ec2',
-    },
-    checkoutButton: {
-        backgroundColor: '#074ec2', // Primary blue
-        paddingVertical: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkoutButtonDisabled: {
-      backgroundColor: '#a6c6ed', // Lighter blue for disabled state
-    },
-    checkoutButtonText: {
-        fontFamily: 'Rubik-SemiBold',
-        fontSize: 16,
-        color: '#FFFFFF',
-    },
-    selectAllContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 15,
-      paddingVertical: 10,
-      backgroundColor: '#FFFFFF',
-      borderBottomWidth: 1,
-      borderBottomColor: '#EEEEEE',
-      marginBottom: 10,
-      borderRadius: 10,
-      marginHorizontal: 15,
-      marginTop: 10,
-      borderWidth:1,
-      borderColor: '#eee',
-    },
-    selectAllButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
-    selectAllText: {
-      fontFamily: 'Rubik-Medium',
-      fontSize: 15,
-      marginLeft: 8,
-      color: '#333333',
-    }
+    container: { flex: 1, backgroundColor: '#FAFAFA' },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 12, backgroundColor: '#074ec2' },
+    headerTitle: { fontFamily: 'Rubik-SemiBold', fontSize: 18, color: '#FFFFFF' },
+    clearAllButtonText: { fontFamily: 'Rubik-Regular', fontSize: 14, color: '#FFFFFF' },
+    content: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, backgroundColor: '#FFFFFF' },
+    emptyText: { fontFamily: 'Rubik-SemiBold', fontSize: 20, color: '#333333', marginTop: 15 },
+    subText: { fontFamily: 'Rubik-Regular', fontSize: 14, color: '#666666', textAlign: 'center', marginTop: 5, marginBottom: 20 },
+    shopButton: { backgroundColor: '#074ec2', paddingVertical: 12, paddingHorizontal: 30, borderRadius: 8, marginTop: 10 },
+    shopButtonText: { fontFamily: 'Rubik-Medium', fontSize: 16, color: '#FFFFFF' },
+    listContentContainer: { paddingHorizontal: 15, paddingVertical: 10 },
+    itemContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 10, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: '#eee' },
+    checkbox: { marginRight: 10 },
+    itemImage: { width: 70, height: 70, borderRadius: 8, marginRight: 10, resizeMode: 'cover' },
+    itemDetails: { flex: 1, justifyContent: 'center' },
+    itemName: { fontFamily: 'Rubik-Medium', fontSize: 14, color: '#333333', marginBottom: 4 },
+    itemPrice: { fontFamily: 'Rubik-SemiBold', fontSize: 15, color: '#074ec2' },
+    quantityContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F2F5', borderRadius: 20, paddingVertical: 5, paddingHorizontal: 8, marginLeft: 10 },
+    quantityButton: { padding: 0 },
+    quantityText: { fontFamily: 'Rubik-Medium', fontSize: 15, color: '#1C1C1C', marginHorizontal: 10 },
+    separator: { height: 0 },
+    footer: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#EEEEEE', paddingHorizontal: 15, paddingVertical: 12, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 5 },
+    totalContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+    totalLabel: { fontFamily: 'Rubik-Regular', fontSize: 15, color: '#666666' },
+    totalPrice: { fontFamily: 'Rubik-Bold', fontSize: 18, color: '#074ec2' },
+    checkoutButton: { backgroundColor: '#074ec2', paddingVertical: 15, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+    checkoutButtonDisabled: { backgroundColor: '#a6c6ed' },
+    checkoutButtonText: { fontFamily: 'Rubik-SemiBold', fontSize: 16, color: '#FFFFFF' },
+    selectAllContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 10, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#EEEEEE', marginBottom: 10, borderRadius: 10, marginHorizontal: 15, marginTop: 10, borderWidth:1, borderColor: '#eee' },
+    selectAllButton: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+    selectAllText: { fontFamily: 'Rubik-Medium', fontSize: 15, marginLeft: 8, color: '#333333' }
 });
 
 export default Cart;

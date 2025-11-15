@@ -6,8 +6,13 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useFonts } from "expo-font";
 import { useCart } from "../context/CartContext";
+import { BASE_URL } from "../utils/api";
 
-export const BASE_URL = "http://192.168.100.45:5000";
+export const BASE_URL = "https://Mobile-application-2.onrender.com/api";
+
+
+
+
 
 const THEME = {
   primary: "#074ec2",
@@ -23,7 +28,7 @@ const getImageSource = (uri) => {
   const PLACEHOLDER = { uri: "https://placehold.co/150x150?text=No+Image" };
   if (!uri || typeof uri !== "string") return PLACEHOLDER;
   if (uri.startsWith("http") || uri.startsWith("data:image")) return { uri };
-  return { uri: `${BASE_URL}/${uri}` };
+ return { uri: `${BASE_URL}/${uri}` };
 };
 
 const ProductDetails = ({ route, navigation }) => {

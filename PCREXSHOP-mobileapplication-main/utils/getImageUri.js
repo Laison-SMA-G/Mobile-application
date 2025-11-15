@@ -1,22 +1,15 @@
 // utils/getImageUri.js
-
-import { Platform } from "react-native";
-
-// Local placeholder
-const localPlaceholder = require("../assets/images/placeholder.png");
-
-export const BASE_URL = "https://192.168.100.45:5000";
+export const BASE_URL = "http://192.168.100.45:5000";
 
 export const getImageUri = (uri) => {
-  // If no URI provided, return the local placeholder
-  if (!uri || typeof uri !== "string") return localPlaceholder;
+  if (!uri || typeof uri !== "string") {
+    // fallback placeholder
+    return { uri: "https://placehold.co/150x150?text=No+Image" };
+  }
 
-  // Absolute URL
-  if (uri.startsWith("http") || uri.startsWith("data:image")) return { uri };
+  if (uri.startsWith("http") || uri.startsWith("data:image")) {
+    return { uri };
+  }
 
-  // Relative path from backend
-  if (uri.startsWith("/")) return { uri: `${BASE_URL}${uri}` };
-
-  // Otherwise, treat it as filename relative to uploads folder
-  return { uri: `${BASE_URL}/uploads/${uri}` };
+  return { uri: `${BASE_URL}${uri.startsWith("/") ? "" : "/"}${uri}` };
 };

@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFonts } from 'expo-font'; // Assuming Expo for font loading
 
 import itemsData from '../data/Item.json'; // Import your item data
-import ProductCard from '../Components/ProductCard'; 
+import ProductCard from './ProductCard'; 
 import { useCart } from '../context/CartContext'; // Import useCart
 
 // Consistent THEME object

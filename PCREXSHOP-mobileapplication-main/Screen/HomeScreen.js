@@ -1,3 +1,4 @@
+// HomeScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -21,6 +22,7 @@ import PreBuiltSection from '../Components/PreBuiltSection';
 import ProductCard from '../Components/ProductCard';
 import * as SplashScreen from 'expo-splash-screen';
 import axios from 'axios';
+import { BASE_URL, getImageSource } from '../utils/api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,16 +31,6 @@ const THEME = {
   background: '#FAFAFA',
   text: '#1C1C1C',
   icons: '#1C1C1C',
-};
-
-// ✅ Make sure BASE_URL points to your backend
-export const BASE_URL = "http://192.168.100.45:5000/api";
-
-const getImageSource = (image) => {
-  if (!image) return { uri: "https://placehold.co/150x150?text=No+Image" };
-  if (image.startsWith("http")) return { uri: image };
-  const BASE_URL_BACKEND = "http://192.168.100.45:5000";
-  return { uri: `${BASE_URL_BACKEND}/${image}` };
 };
 
 export default function HomeScreen({ navigation }) {
@@ -54,8 +46,10 @@ export default function HomeScreen({ navigation }) {
   const [preBuiltProducts, setPreBuiltProducts] = useState([]);
   const [allProductsDisplay, setAllProductsDisplay] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
-  const { itemCount } = useCart();
-  const { user } = useUser(); // ✅ Get logged-in user
+
+  const cartContext = useCart();
+  const itemCount = cartContext?.itemCount || 0;
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -112,7 +106,6 @@ export default function HomeScreen({ navigation }) {
 
   if (!fontsLoaded) return null;
 
-  // ✅ New and corrected function to chat with admin
   const openAdminChat = async () => {
     if (!user?._id) {
       Alert.alert("Not logged in", "You must be logged in to chat with Admin");
@@ -120,7 +113,6 @@ export default function HomeScreen({ navigation }) {
     }
 
     try {
-      // Use _id from MongoDB
       const res = await axios.get(`${BASE_URL}/chats/user/${user._id}/admin`);
       const chat = res.data;
 
@@ -148,19 +140,25 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.navigate('SearchProduct')} style={styles.searchIconContainer}>
             <Icon name="magnify" size={26} color={THEME.icons} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Cart')} style={styles.headerIcon}>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Cart')}
+            style={styles.headerIcon}
+          >
             <View>
               <Icon name="cart-outline" size={26} color={THEME.icons} />
-              {itemCount > 0 && (
+              {Number(itemCount) > 0 && (
                 <View style={styles.badgeContainer}>
                   <Text style={styles.badgeText}>{itemCount}</Text>
                 </View>
               )}
             </View>
           </TouchableOpacity>
+
           <TouchableOpacity onPress={() => navigation.navigate('Account')} style={styles.headerIcon}>
             <Icon name="account-outline" size={26} color={THEME.icons} />
           </TouchableOpacity>
+
           <TouchableOpacity onPress={openAdminChat} style={styles.headerIcon}>
             <Icon name="message-text-outline" size={26} color={THEME.icons} />
           </TouchableOpacity>

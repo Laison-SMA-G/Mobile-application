@@ -2,8 +2,8 @@ import { API_URL } from "../utils/api";
 
 
 // api.js
-export const BASE_URL = "https://pcrex-server.onrender.com"; // for general backend fetches
-export const API_URL = "https://pcrex-server.onrender.com";  // for products or other API calls
+export const BASE_URL = "https://Mobile-application-2.onrender.com/api"; 
+export const API_URL = "https://Mobile-application-2.onrender.com/api"; 
 
 
 fetch(`${API_URL}/api/products`)

@@ -1,7 +1,7 @@
 // src/context/CartContext.js
 import React, { createContext, useState, useContext, useMemo, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useUser } from './UserContext'; // same folder
+import { useUser } from './UserContext';
 
 const CART_STORAGE_KEY = '@MyApp:cart_v2';
 
@@ -14,16 +14,12 @@ const CartContext = createContext();
 
 const normalizeProduct = (p = {}) => {
   const id = p._id || p.id || (p.productId && (p.productId._id || p.productId)) || null;
-  // stock: prefer explicit stock, fallback to quantity, else 0
   const stock = p.stock !== undefined && p.stock !== null
     ? Number(p.stock)
     : (p.quantity !== undefined && p.quantity !== null ? Number(p.quantity) : 0);
-
-  // ensure images is an array
   const images = Array.isArray(p.images) && p.images.length
     ? p.images
     : (p.image ? [p.image] : []);
-
   const price = (p.price !== undefined && p.price !== null) ? Number(p.price) : 0;
 
   return {
@@ -37,11 +33,11 @@ const normalizeProduct = (p = {}) => {
 };
 
 export const CartProvider = ({ children }) => {
-  const { user } = useUser(); // user can be null (guest)
+  const { user } = useUser();
   const [cartItems, setCartItems] = useState([]);
   const [isLoadingCart, setIsLoadingCart] = useState(true);
 
-  // Load cart for current user (runs on mount and when user changes)
+  // Load cart on mount or user change
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -49,11 +45,8 @@ export const CartProvider = ({ children }) => {
       try {
         const key = getCartStorageKey(user);
         const raw = await AsyncStorage.getItem(key);
-        if (raw && mounted) {
-          setCartItems(JSON.parse(raw));
-        } else if (mounted) {
-          setCartItems([]);
-        }
+        if (raw && mounted) setCartItems(JSON.parse(raw));
+        else if (mounted) setCartItems([]);
       } catch (e) {
         console.error('Cart load error', e);
         if (mounted) setCartItems([]);
@@ -65,25 +58,19 @@ export const CartProvider = ({ children }) => {
     return () => { mounted = false; };
   }, [user]);
 
-  // Persist cart when it changes (saved under current user's key)
+  // Persist cart
   useEffect(() => {
-    if (isLoadingCart) return; // avoid writing while initial load
+    if (isLoadingCart) return;
     const key = getCartStorageKey(user);
-    AsyncStorage.setItem(key, JSON.stringify(cartItems)).catch(e => {
-      console.error('Failed to persist cart', e);
-    });
+    AsyncStorage.setItem(key, JSON.stringify(cartItems)).catch(e => console.error('Failed to persist cart', e));
   }, [cartItems, user, isLoadingCart]);
 
-  // Add to cart: normalize product, ensure 1 on first add, respect stock
+  // Cart operations
   const addToCart = (product) => {
     const p = normalizeProduct(product);
     setCartItems(prev => {
-      // if no id, generate a fallback id (shouldn't happen if backend returns _id)
-      const id = p.id || `${Date.now()}_${Math.random().toString(36).slice(2,9)}`;
-      // find existing by id or _id
       const existing = prev.find(i => (i.id && p.id && i.id === p.id) || (i._id && p._id && i._id === p._id));
       if (existing) {
-        // increase while respecting stock
         return prev.map(i => {
           const same = (i.id && p.id && i.id === p.id) || (i._id && p._id && i._id === p._id);
           if (!same) return i;
@@ -91,33 +78,25 @@ export const CartProvider = ({ children }) => {
           return { ...i, quantity: Math.min(nextQty, p.stock) };
         });
       } else {
-        // add new with quantity:1 and include normalized fields
-        return [...prev, {
-          ...p,
-          id, // ensure id present
-          quantity: 1,
-        }];
+        return [...prev, { ...p, quantity: 1 }];
       }
     });
   };
 
   const increaseQuantity = (itemId) => {
     setCartItems(prev => prev.map(item => {
-      const match = item.id === itemId || item._id === itemId;
-      if (!match) return item;
+      if (!(item.id === itemId || item._id === itemId)) return item;
       const max = item.stock ?? 0;
       const next = (item.quantity || 0) + 1;
-      if (next > max) return item; // do not exceed stock
-      return { ...item, quantity: next };
+      return { ...item, quantity: next > max ? max : next };
     }));
   };
 
   const decreaseQuantity = (itemId) => {
     setCartItems(prev => prev.map(item => {
-      const match = item.id === itemId || item._id === itemId;
-      if (!match) return item;
+      if (!(item.id === itemId || item._id === itemId)) return item;
       const next = (item.quantity || 0) - 1;
-      return { ...item, quantity: next < 1 ? 1 : next }; // keep min 1 (UI removes on trash)
+      return { ...item, quantity: next < 1 ? 1 : next };
     }));
   };
 
@@ -125,23 +104,19 @@ export const CartProvider = ({ children }) => {
     setCartItems(prev => prev.filter(item => !(item.id === itemId || item._id === itemId)));
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+  const clearCart = () => setCartItems([]);
 
-  // Remove ordered items from cart (or you may call backend to update stock)
+  // NEW: Decrease stock or remove ordered items robustly
   const decreaseStock = (orderedItems = []) => {
-    const orderedIds = new Set(orderedItems.map(i => i.id || i._id));
-    setCartItems(prev => prev.filter(ci => !orderedIds.has(ci.id) && !orderedIds.has(ci._id)));
+    if (!Array.isArray(orderedItems) || !orderedItems.length) return;
+    setCartItems(prev => {
+      const idsToRemove = new Set(orderedItems.map(i => i._id || i.id));
+      return prev.filter(ci => !idsToRemove.has(ci._id) && !idsToRemove.has(ci.id));
+    });
   };
 
-  const totalPrice = useMemo(() => {
-    return cartItems.reduce((acc, it) => acc + ((Number(it.price) || 0) * (it.quantity || 0)), 0);
-  }, [cartItems]);
-
-  const itemCount = useMemo(() => {
-    return cartItems.reduce((acc, it) => acc + (it.quantity || 0), 0);
-  }, [cartItems]);
+  const totalPrice = useMemo(() => cartItems.reduce((acc, it) => acc + ((Number(it.price) || 0) * (it.quantity || 0)), 0), [cartItems]);
+  const itemCount = useMemo(() => cartItems.reduce((acc, it) => acc + (it.quantity || 0), 0), [cartItems]);
 
   const value = {
     cartItems,

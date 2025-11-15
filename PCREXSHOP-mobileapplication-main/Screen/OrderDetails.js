@@ -11,29 +11,17 @@ import {
   Modal,
   Pressable,
   Dimensions,
-  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useOrders } from '../context/OrderContext';
+import { BASE_URL, getImageSource } from '../utils/api';
 
-const BASE_URL = "http://192.168.100.45:5000";
-
-// Currency formatter
 const formatPrice = (value) => {
   const num = parseFloat(value);
   if (isNaN(num)) return '₱0.00';
   if (Number.isInteger(num)) return `₱${num.toLocaleString()}`;
   return `₱${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-};
-
-// Image utility
-const getImageSource = (uri) => {
-  const PLACEHOLDER = { uri: `${BASE_URL}/uploads/placeholder.png` };
-  if (!uri || typeof uri !== 'string') return PLACEHOLDER;
-  if (uri.startsWith("http") || uri.startsWith("data:image")) return { uri };
-  if (uri.startsWith("/")) return { uri: `${BASE_URL}${uri}` };
-  return { uri: `${BASE_URL}/${uri.replace(/\\/g, '/')}` };
 };
 
 const OrderItemDetail = ({ item, onImagePress }) => {
@@ -119,8 +107,8 @@ const OrderDetails = () => {
     setConfirmConfig({
       title: "Cancel Order",
       message: "Are you sure you want to cancel this order? This action may not be possible if the seller has already processed it.",
-      onConfirm: () => {
-        cancelOrder(order._id);
+      onConfirm: async () => {
+        await cancelOrder(order._id);
         showLocalSuccessToast('Order Cancelled Successfully!');
         setTimeout(() => navigation.goBack(), 500);
       }
@@ -142,6 +130,7 @@ const OrderDetails = () => {
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { fontFamily: 'Rubik-Medium' }]}>Order Details</Text>
       </View>
+
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { fontFamily: 'Rubik-Bold' }]}>Order Summary</Text>

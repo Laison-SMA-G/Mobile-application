@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const orderSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+
     items: [
       {
         _id: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
@@ -12,6 +13,7 @@ const orderSchema = new mongoose.Schema(
         image: { type: String },
       },
     ],
+
     shippingAddress: {
       fullName: String,
       phoneNumber: String,
@@ -21,17 +23,33 @@ const orderSchema = new mongoose.Schema(
       country: String,
       name: String,
     },
+
     paymentMethod: { type: String, required: true },
+
     shippingProvider: {
       id: String,
       name: String,
       estimatedDays: String,
       fee: Number,
     },
+
     subtotal: { type: Number, required: true },
     shippingFee: { type: Number, required: true },
     total: { type: Number, required: true },
-    status: { type: String, default: "To Pay" },
+
+    // 👇 UPDATED — supports cancellation
+    status: {
+      type: String,
+      enum: [
+        "To Pay",
+        "To Ship",
+        "To Receive",
+        "Completed",
+        "Cancelled"
+      ],
+      default: "To Pay"
+    },
+
     orderDate: { type: Date, default: Date.now },
   },
   { timestamps: true }

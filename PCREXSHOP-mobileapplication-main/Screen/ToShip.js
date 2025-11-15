@@ -1,93 +1,102 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Image, Modal, Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    SafeAreaView,
+    FlatList,
+    TouchableOpacity,
+    Image,
+    ActivityIndicator
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useFonts } from 'expo-font';
 import { useOrders } from '../context/OrderContext';
-
-const formatPrice = (value) => {
-  const num = parseFloat(value);
-  if (isNaN(num)) return '₱0.00';
-  return Number.isInteger(num)
-    ? `₱${num.toLocaleString()}`
-    : `₱${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-};
-
-const OrderItem = ({ item }) => (
-  <View style={styles.orderItemContainer}>
-    <Image source={{ uri: item?.images?.[0] }} style={styles.orderItemImage} />
-    <View style={styles.orderItemDetails}>
-      <Text style={styles.orderItemName} numberOfLines={2}>{item.name}</Text>
-      <Text style={styles.orderItemQuantity}>Qty: {item.quantity || 1}</Text>
-    </View>
-    <Text style={styles.orderItemPrice}>{formatPrice(item.price * (item.quantity || 1))}</Text>
-  </View>
-);
-
-const OrderCard = ({ order, onViewDetails }) => (
-  <TouchableOpacity style={styles.card} onPress={() => onViewDetails(order)}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.orderStatus}>{order.status}</Text>
-    </View>
-    {order.items.map(item => <OrderItem key={item._id} item={item} />)}
-    <View style={styles.cardFooter}>
-      <Text style={styles.orderTotalLabel}>Total:</Text>
-      <Text style={styles.orderTotalValue}>{formatPrice(order.total)}</Text>
-    </View>
-  </TouchableOpacity>
-);
+import { useUser } from '../context/UserContext';
+import { getImageUri } from '../utils/getImageUri';
 
 const ToShip = ({ navigation }) => {
-  const { orders } = useOrders();
-  const toShipOrders = useMemo(() => orders.filter(o => o.status === 'To Ship'), [orders]);
+    const [fontsLoaded] = useFonts({
+        'Rubik-Regular': require('../assets/fonts/Rubik/static/Rubik-Regular.ttf'),
+        'Rubik-Medium': require('../assets/fonts/Rubik/static/Rubik-Medium.ttf'),
+        'Rubik-Bold': require('../assets/fonts/Rubik/static/Rubik-Bold.ttf'),
+    });
 
-  const handleViewOrderDetails = (order) => {
-    navigation.navigate('OrderDetails', { orderId: order._id });
-  };
+    const { orders = [] } = useOrders();
+    const { user, loading } = useUser();
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="chevron-left" size={30} color="#FFF" />
+    // Filter orders that are "To Ship"
+    const toShipOrders = useMemo(() => {
+        if (!Array.isArray(orders)) return [];
+        return orders.filter(order => order.status === 'To Ship');
+    }, [orders]);
+
+    if (!fontsLoaded || loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#074ec2" />
+                <Text style={styles.loadingText}>Loading orders...</Text>
+            </View>
+        );
+    }
+
+    if (!user) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Please login to view your orders.</Text>
+            </View>
+        );
+    }
+
+    const renderItem = ({ item }) => (
+        <TouchableOpacity
+            style={styles.orderCard}
+            onPress={() => navigation.navigate('OrderDetails', { orderId: item._id })}
+        >
+            <Image
+                source={{ uri: getImageUri(item.products?.[0]?.image) }}
+                style={styles.productImage}
+            />
+            <View style={styles.orderInfo}>
+                <Text style={styles.productName}>{item.products?.[0]?.name || 'Product Name'}</Text>
+                <Text style={styles.orderAmount}>Qty: {item.products?.[0]?.quantity || 1}</Text>
+                <Text style={styles.orderPrice}>₱{item.total?.toFixed(2) || '0.00'}</Text>
+            </View>
+            <Icon name="chevron-right" size={24} color="#074ec2" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>To Ship</Text>
-        <View style={{ width: 28 }} />
-      </View>
+    );
 
-      <FlatList
-        data={toShipOrders}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <OrderCard order={item} onViewDetails={handleViewOrderDetails} />}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="package-variant-closed" size={70} color="#CCC" />
-            <Text style={styles.emptyText}>You have no orders being shipped.</Text>
-          </View>
-        }
-      />
-    </SafeAreaView>
-  );
+    return (
+        <SafeAreaView style={styles.container}>
+            <FlatList
+                data={toShipOrders}
+                keyExtractor={(item) => item._id}
+                renderItem={renderItem}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Icon name="truck-outline" size={50} color="#888" />
+                        <Text style={styles.emptyText}>No orders to ship</Text>
+                    </View>
+                }
+                contentContainerStyle={toShipOrders.length === 0 && styles.emptyList}
+            />
+        </SafeAreaView>
+    );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 12, backgroundColor: '#074ec2' },
-  headerTitle: { fontSize: 20, color: '#FFF' },
-  listContainer: { padding: 12 },
-  card: { backgroundColor: '#FFF', borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: '#eee' },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#F1F3F5' },
-  orderStatus: { fontSize: 13, color: '#3498DB' },
-  orderItemContainer: { flexDirection: 'row', padding: 14, borderBottomWidth: 1, borderBottomColor: '#F8F9FA' },
-  orderItemImage: { width: 60, height: 60, borderRadius: 8, marginRight: 14, backgroundColor: '#EAEAEA' },
-  orderItemDetails: { flex: 1, justifyContent: 'center' },
-  orderItemName: { fontSize: 15, color: '#343A40' },
-  orderItemQuantity: { fontSize: 14, color: '#868E96', marginTop: 4 },
-  orderItemPrice: { fontSize: 15, color: '#495057' },
-  cardFooter: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', padding: 14, borderTopWidth: 1, borderTopColor: '#F1F3F5' },
-  orderTotalLabel: { fontSize: 14, color: '#495057' },
-  orderTotalValue: { fontSize: 18, marginLeft: 8, color: '#074ec2' },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 },
-  emptyText: { marginTop: 20, fontSize: 17, color: '#ADB5BD' },
+    container: { flex: 1, backgroundColor: '#FAFAFA' },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    loadingText: { marginTop: 10, fontSize: 16, fontFamily: 'Rubik-Regular', color: '#555' },
+    orderCard: { flexDirection: 'row', padding: 15, backgroundColor: '#FFF', marginHorizontal: 15, marginVertical: 8, borderRadius: 10, alignItems: 'center', elevation: 2 },
+    productImage: { width: 70, height: 70, borderRadius: 8, marginRight: 15 },
+    orderInfo: { flex: 1 },
+    productName: { fontFamily: 'Rubik-Medium', fontSize: 14, color: '#1C1C1C', marginBottom: 4 },
+    orderAmount: { fontFamily: 'Rubik-Regular', fontSize: 12, color: '#555', marginBottom: 2 },
+    orderPrice: { fontFamily: 'Rubik-SemiBold', fontSize: 14, color: '#074ec2' },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 },
+    emptyText: { fontSize: 16, color: '#888', fontFamily: 'Rubik-Medium', marginTop: 12 },
+    emptyList: { flex: 1, justifyContent: 'center' },
 });
 
 export default ToShip;

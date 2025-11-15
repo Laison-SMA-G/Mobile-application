@@ -1,4 +1,4 @@
-// ProductCard.js
+// components/ProductCard.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -9,7 +9,6 @@ import {
   Image,
   Modal,
   Pressable,
-  ScrollView,
   Dimensions,
   Platform,
 } from "react-native";
@@ -41,14 +40,10 @@ const ProductCard = ({ product, onPress }) => {
   const [stockModalMessage, setStockModalMessage] = useState("");
   const [isSuccessToastVisible, setSuccessToastVisible] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
-
   const [isGalleryVisible, setGalleryVisible] = useState(false);
-  const [galleryIndex, setGalleryIndex] = useState(0);
 
-  // Ensure images array always exists, fallback to local placeholder
-  const images = product.images && product.images.length
-    ? product.images
-    : [product.image || null];
+  // ✅ Only one main image
+  const mainImage = product.image ? getImageUri(product.image) : getImageUri(null);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
@@ -79,24 +74,16 @@ const ProductCard = ({ product, onPress }) => {
     }
   };
 
-  const openGallery = (index) => {
-    setGalleryIndex(index);
-    setGalleryVisible(true);
-  };
-
   const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
   return (
     <>
       <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
         <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {images.map((img, idx) => (
-              <TouchableOpacity key={idx} onPress={() => openGallery(idx)}>
-                <Image source={getImageUri(img)} style={styles.image} resizeMode="cover" />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {/* ✅ Single main image */}
+          <TouchableOpacity onPress={() => setGalleryVisible(true)}>
+            <Image source={mainImage} style={styles.image} resizeMode="cover" />
+          </TouchableOpacity>
 
           <View style={styles.infoContainer}>
             <View style={styles.titleRow}>
@@ -149,16 +136,7 @@ const ProductCard = ({ product, onPress }) => {
       {/* Fullscreen Gallery */}
       <Modal visible={isGalleryVisible} transparent animationType="fade">
         <View style={styles.galleryOverlay}>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            contentOffset={{ x: SCREEN_WIDTH * galleryIndex, y: 0 }}
-            showsHorizontalScrollIndicator={false}
-          >
-            {images.map((img, idx) => (
-              <Image key={idx} source={getImageUri(img)} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
-            ))}
-          </ScrollView>
+          <Image source={mainImage} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
           <TouchableOpacity style={styles.galleryCloseButton} onPress={() => setGalleryVisible(false)}>
             <Icon name="close-circle" size={36} color="#FFF" />
           </TouchableOpacity>
@@ -171,7 +149,7 @@ const ProductCard = ({ product, onPress }) => {
 const styles = StyleSheet.create({
   wrapper: { flex: 1, margin: 8 },
   container: { flex: 1, backgroundColor: THEME.COLORS.card, borderRadius: 15, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 1, elevation: Platform.OS === "android" ? 1 : 0 },
-  image: { width: 100, height: 100, borderRadius: 8, marginRight: 8 },
+  image: { width: "100%", height: 150, borderRadius: 8 },
   outOfStockOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" },
   outOfStockText: { color: THEME.COLORS.card, fontSize: 16, fontFamily: "Rubik-Bold" },
   infoContainer: { flex: 1, padding: 12, justifyContent: "space-between" },

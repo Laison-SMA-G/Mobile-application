@@ -1,21 +1,16 @@
-// utils/getImageUri.js
+export const BASE_URL = "https://Mobile-application-2.onrender.com";
 
-// Base URL of your backend server
-export const BASE_URL = "https://192.168.100.45:5000";
-
-// Function to get the proper URI for images
 export const getImageUri = (uri) => {
-  // If no URI provided, return a default placeholder from a URL
   const placeholderUrl = "https://via.placeholder.com/300x300.png?text=No+Image";
 
   if (!uri || typeof uri !== "string") return { uri: placeholderUrl };
 
-  // If it's already an absolute URL
+  // Already an absolute URL (from cloud or external)
   if (uri.startsWith("http") || uri.startsWith("data:image")) return { uri };
 
-  // If it's a relative path from your backend
+  // Absolute path from backend
   if (uri.startsWith("/")) return { uri: `${BASE_URL}${uri}` };
 
-  // Otherwise, treat it as a filename relative to uploads folder
+  // Otherwise treat as filename in uploads folder
   return { uri: `${BASE_URL}/uploads/${uri}` };
 };

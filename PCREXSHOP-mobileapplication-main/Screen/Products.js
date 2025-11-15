@@ -16,6 +16,7 @@ import { useCart } from "../context/CartContext";
 import CategoryList from "../Components/CategoryList";
 import ProductCard from "../Components/ProductCard";
 import { getImageUri } from "../utils/getImageUri";
+import { API_URL } from "../utils/api"; // make sure this points to Render
 
 const THEME = {
   primary: "#074ec2",
@@ -42,35 +43,28 @@ const Products = ({ navigation }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("https://192.168.100.45:5000/api/products");
+        const res = await fetch(`${API_URL}/products`);
         const data = await res.json();
 
         const formatted = data.map((item) => {
           const quantity = typeof item.quantity === "number" ? item.quantity : 0;
 
-          // Always create images array with getImageUri
-          let images = [];
-          if (Array.isArray(item.images) && item.images.length) {
-            images = item.images.map((img) => getImageUri(img));
-          } else if (item.image) {
-            images = [getImageUri(item.image)];
-          } else {
-            // Use local placeholder directly
-            images = [getImageUri(null)];
-          }
+          // Image handling: always at least one image
+          const images = Array.isArray(item.images) && item.images.length
+            ? item.images.map(img => getImageUri(img))
+            : [getImageUri(item.image)];
 
           return {
             ...item,
             quantity,
-            image: images[0],
             images,
+            image: images[0] || getImageUri(null),
           };
         });
 
         setAllProducts(formatted);
         setFilteredProducts(formatted);
 
-        // Extract unique categories
         const uniqueCategories = [
           ...new Set(
             formatted.map((i) => i.category?.name || i.category || "Unknown")
@@ -86,13 +80,11 @@ const Products = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    let result = allProducts;
-    if (searchQuery.trim() !== "") {
-      result = result.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    setFilteredProducts(result);
+    const filtered = searchQuery.trim()
+      ? allProducts.filter((p) => p.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+      : allProducts;
+
+    setFilteredProducts(filtered);
   }, [searchQuery, allProducts]);
 
   if (!fontsLoaded) return null;
@@ -110,7 +102,6 @@ const Products = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME.primary} />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="chevron-left" size={28} color={THEME.cardBackground} />
@@ -133,19 +124,17 @@ const Products = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-            <Icon name="account-outline" size={26} color={THEME.cardBackground} style={styles.headerIcon} />
+            <Icon name="account-outline" size={26} color={THEME.cardBackground} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Category List */}
       <CategoryList categories={categories} navigation={navigation} />
 
-      {/* Product Grid */}
       <FlatList
         data={filteredProducts}
         renderItem={renderProduct}
-        keyExtractor={(item) => item._id || item.id?.toString()}
+        keyExtractor={(item) => item._id || item.id?.toString() || Math.random().toString()}
         numColumns={2}
         contentContainerStyle={{ paddingHorizontal: 8 }}
         ListEmptyComponent={
@@ -163,7 +152,6 @@ const styles = StyleSheet.create({
   header: { backgroundColor: THEME.primary, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   rightIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   searchIconContainer: { padding: 5 },
-  headerIcon: { marginLeft: 4 },
   badgeContainer: { position: "absolute", top: -4, right: -6, backgroundColor: "#EE2323", borderRadius: 9, width: 18, height: 18, justifyContent: "center", alignItems: "center" },
   badgeText: { color: "#FFFFFF", fontSize: 10, fontWeight: "bold" },
   gridCardContainer: { width: "50%" },
