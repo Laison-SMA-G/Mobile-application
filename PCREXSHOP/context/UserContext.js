@@ -3,15 +3,10 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-
-
 export const BASE_URL = "http://192.168.100.45:5000/api";
-
-// Set axios base URL
 axios.defaults.baseURL = BASE_URL;
 
 const UserContext = createContext(null);
-
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -19,6 +14,7 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
 
+  // Restore session
   useEffect(() => {
     const restoreSession = async () => {
       try {
@@ -27,7 +23,8 @@ export const UserProvider = ({ children }) => {
           setToken(savedToken);
           axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
           const res = await axios.get('/users/me');
-          setUser(res.data.user);
+          // ⚡ Normalize user object: ensure _id exists
+          setUser({ ...res.data.user, _id: res.data.user.id || res.data.user._id });
         }
       } catch (err) {
         console.error('Restore session error:', err.response?.data || err);
@@ -51,10 +48,12 @@ export const UserProvider = ({ children }) => {
 
       const res = await axios.post('/auth/register', { fullName, email, password });
       const { user: userData, token: newToken } = res.data;
+
       setToken(newToken);
       await AsyncStorage.setItem('@token', newToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      setUser(userData);
+      setUser({ ...userData, _id: userData.id || userData._id }); // ⚡ normalize _id
+
       return { success: true, user: userData };
     } catch (err) {
       console.error('Signup error:', err.response?.data || err);
@@ -74,10 +73,12 @@ export const UserProvider = ({ children }) => {
 
       const res = await axios.post('/auth/login', { email, password });
       const { user: userData, token: newToken } = res.data;
+
       setToken(newToken);
       await AsyncStorage.setItem('@token', newToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      setUser(userData);
+      setUser({ ...userData, _id: userData.id || userData._id }); // ⚡ normalize _id
+
       return { success: true, user: userData };
     } catch (err) {
       console.error('Login error:', err.response?.data || err);
@@ -98,48 +99,24 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // ✅ Fixed: use id instead of _id
- const updateUserProfile = async ({ fullName, email, phone, profileImage }) => {
-  if (!user?._id) {
-    console.error('Missing user ID', user);
-    return { success: false, message: 'Missing user ID' };
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("userId", user._id);
-    formData.append("fullName", fullName);
-    formData.append("email", email);
-    formData.append("phone", phone);
-
-    if (profileImage) {
-      // If it's a base64 string from Expo ImagePicker
-      if (profileImage.startsWith("data:")) {
-        // Convert to URI-compatible format for FormData
-        const uri = profileImage;
-        formData.append("profileImage", {
-          uri,
-          type: "image/jpeg",
-          name: "profile.jpg",
-        });
-      }
+  // ✅ Update profile
+  const updateUserProfile = async (updatedData) => {
+    if (!user?._id) {
+      console.error('Missing user ID', user);
+      return { success: false, message: 'Missing user ID' };
     }
 
-    const { data } = await axios.put('/users/profile', formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    setUser(data.user || data);
-    return { success: true };
-  } catch (error) {
-    console.error('Update profile error:', error.response?.data || error.message);
-    return { success: false, message: error.response?.data?.message || error.message };
-  }
-};
-
+    try {
+      const { data } = await axios.put('/users/profile', updatedData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser({ ...data.user, _id: data.user.id || data.user._id });
+      return { success: true };
+    } catch (error) {
+      console.error('Update profile error:', error.response?.data || error.message);
+      return { success: false, message: error.response?.data?.message || error.message };
+    }
+  };
 
   const value = useMemo(
     () => ({ user, token, loading, signUp, signIn, signOut, updateUserProfile, BASE_URL }),
@@ -148,7 +125,6 @@ export const UserProvider = ({ children }) => {
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
-
 
 export const useUser = () => {
   const ctx = useContext(UserContext);
