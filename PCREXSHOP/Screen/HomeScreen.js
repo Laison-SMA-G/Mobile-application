@@ -1,4 +1,4 @@
-// HomeScreen.js
+// screens/HomeScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -21,8 +21,7 @@ import BestSellerSection from '../Components/BestSellerSection';
 import PreBuiltSection from '../Components/PreBuiltSection';
 import ProductCard from '../Components/ProductCard';
 import * as SplashScreen from 'expo-splash-screen';
-import axios from 'axios';
-import { BASE_URL, getImageSource } from '../utils/api';
+import api from '../utils/axiosconfig';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,6 +30,12 @@ const THEME = {
   background: '#FAFAFA',
   text: '#1C1C1C',
   icons: '#1C1C1C',
+};
+
+// Temporary placeholder
+const getImageSource = (imagePath) => {
+  if (!imagePath) return require('../assets/PCREXBIGLOGOMOBILE.png'); // fallback image
+  return { uri: imagePath };
 };
 
 export default function HomeScreen({ navigation }) {
@@ -54,7 +59,7 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/products`);
+        const res = await api.get('/products');
         const data = res.data;
 
         const formatted = data.map(item => {
@@ -65,6 +70,7 @@ export default function HomeScreen({ navigation }) {
           } else if (item.image) {
             images = [getImageSource(item.image)];
           }
+
           const categoryObj = item.category
             ? typeof item.category === 'string'
               ? { name: item.category }
@@ -113,7 +119,7 @@ export default function HomeScreen({ navigation }) {
     }
 
     try {
-      const res = await axios.get(`${BASE_URL}/chats/user/${user._id}/admin`);
+      const res = await api.get(`/chats/${user._id}/admin`);
       const chat = res.data;
 
       navigation.navigate("Chat", {

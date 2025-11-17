@@ -5,7 +5,7 @@ import axios from 'axios';
 
 
 
-export const BASE_URL = "https://mobile-application-2.onrender.com/api";
+export const BASE_URL = "http://192.168.100.45:5000/api";
 
 // Set axios base URL
 axios.defaults.baseURL = BASE_URL;
@@ -99,23 +99,47 @@ export const UserProvider = ({ children }) => {
   };
 
   // ✅ Fixed: use id instead of _id
-  const updateUserProfile = async (updatedData) => {
-  if (!user?.id) {
+ const updateUserProfile = async ({ fullName, email, phone, profileImage }) => {
+  if (!user?._id) {
     console.error('Missing user ID', user);
     return { success: false, message: 'Missing user ID' };
   }
 
   try {
-    const { data } = await axios.put('/users/updateProfile', updatedData, {
-      headers: { Authorization: `Bearer ${token}` },
+    const formData = new FormData();
+    formData.append("userId", user._id);
+    formData.append("fullName", fullName);
+    formData.append("email", email);
+    formData.append("phone", phone);
+
+    if (profileImage) {
+      // If it's a base64 string from Expo ImagePicker
+      if (profileImage.startsWith("data:")) {
+        // Convert to URI-compatible format for FormData
+        const uri = profileImage;
+        formData.append("profileImage", {
+          uri,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        });
+      }
+    }
+
+    const { data } = await axios.put('/users/profile', formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
     });
-    setUser(data.user || data); // some responses might return {user: ...}
+
+    setUser(data.user || data);
     return { success: true };
   } catch (error) {
     console.error('Update profile error:', error.response?.data || error.message);
     return { success: false, message: error.response?.data?.message || error.message };
   }
 };
+
 
   const value = useMemo(
     () => ({ user, token, loading, signUp, signIn, signOut, updateUserProfile, BASE_URL }),

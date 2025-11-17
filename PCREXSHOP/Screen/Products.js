@@ -15,8 +15,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useCart } from "../context/CartContext";
 import CategoryList from "../Components/CategoryList";
 import ProductCard from "../Components/ProductCard";
-import { getImageUri } from "../utils/getImageUri";
-import { API_URL } from "../utils/api"; // make sure this points to Render
+import api from "../utils/axiosconfig";
 
 const THEME = {
   primary: "#074ec2",
@@ -24,6 +23,11 @@ const THEME = {
   text: "#1C1C1C",
   cardBackground: "#FFFFFF",
   icons: "#FFFFFF",
+};
+
+const getImageUri = (imagePath) => {
+  if (!imagePath) return require('../assets/PCREXBIGLOGOMOBILE.png'); 
+  return { uri: imagePath };
 };
 
 const Products = ({ navigation }) => {
@@ -43,16 +47,16 @@ const Products = ({ navigation }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`${API_URL}/products`);
-        const data = await res.json();
+        const res = await api.get("/products");
+        const data = res.data;
 
         const formatted = data.map((item) => {
           const quantity = typeof item.quantity === "number" ? item.quantity : 0;
 
-          // Image handling: always at least one image
-          const images = Array.isArray(item.images) && item.images.length
-            ? item.images.map(img => getImageUri(img))
-            : [getImageUri(item.image)];
+          const images =
+            Array.isArray(item.images) && item.images.length
+              ? item.images.map((img) => getImageUri(img))
+              : [getImageUri(item.image)];
 
           return {
             ...item,
@@ -66,13 +70,11 @@ const Products = ({ navigation }) => {
         setFilteredProducts(formatted);
 
         const uniqueCategories = [
-          ...new Set(
-            formatted.map((i) => i.category?.name || i.category || "Unknown")
-          ),
+          ...new Set(formatted.map((i) => i.category?.name || i.category || "Unknown")),
         ];
         setCategories(uniqueCategories);
       } catch (error) {
-        console.error("❌ Failed to fetch products:", error);
+        console.error("❌ Failed to fetch products:", error.response?.data || error.message);
       }
     };
 

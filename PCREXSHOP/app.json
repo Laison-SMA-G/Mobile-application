@@ -2,7 +2,6 @@
   "expo": {
     "name": "PCREXSHOP-mobileapplication",
     "slug": "PCREXSHOP-mobileapplication",
-    "owner": "laison",
     "platforms": [
       "ios",
       "android",
