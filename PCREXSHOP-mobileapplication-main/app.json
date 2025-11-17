@@ -1,8 +1,12 @@
 {
   "expo": {
-    "name": "PCREXSHOP-mobileapplication",
-    "slug": "PCREXSHOP-mobileapplication",
-    "platforms": ["ios", "android", "web"],
+    "name": "PCREXSHOP",
+    "slug": "PCREXSHOP",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "jsEngine": "jsc",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +19,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.laison.PCREXSHOPmobileapplication",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

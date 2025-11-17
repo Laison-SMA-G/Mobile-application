@@ -1,6 +1,0 @@
-AUTHENTICATION ROUTES:
-POST /api/auth/register
-POST /api/auth/login
-
-ORDER ROUTES:
-GET /api/orders

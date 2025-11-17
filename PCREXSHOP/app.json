@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "PCREXSHOP-mobileapplication",
+    "slug": "PCREXSHOP-mobileapplication",
+    "owner": "laison",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "jsEngine": "jsc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets//PCREXBIGLOGOSPLASH.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets//PCREXBIGLOGOSPLASH.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.laison.PCREXSHOPmobileapplication",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets//PCREXBIGLOGOSPLASH.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.laison.PCREXSHOPmobileapplication"
+    },
+    "web": {
+      "favicon": "./assets//PCREXBIGLOGOSPLASH.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2c49d9e3-91b2-4d6a-8577-981358b24f09"
+      }
+    }
+  }
+}
