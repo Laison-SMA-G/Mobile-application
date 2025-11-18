@@ -5,10 +5,9 @@ import { useUser } from './UserContext';
 import axios from 'axios';
 
 // 🔵 Backend API base URL
-export const BASE_URL = "https://Mobile-application-2.onrender.com/api";
+export const BASE_URL = "https://mobile-application-2.onrender.com/api";
 
 const CART_STORAGE_KEY = '@MyApp:cart_v2';
-
 const getCartStorageKey = (user) => {
   const uid = user && (user._id || user.id) ? (user._id || user.id) : 'guest';
   return `${CART_STORAGE_KEY}_${uid}`;
@@ -16,6 +15,7 @@ const getCartStorageKey = (user) => {
 
 const CartContext = createContext();
 
+// ✅ Normalize product data
 const normalizeProduct = (p = {}) => {
   const id = p._id || p.id || (p.productId && (p.productId._id || p.productId)) || null;
   const stock = p.stock !== undefined && p.stock !== null
@@ -41,7 +41,7 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [isLoadingCart, setIsLoadingCart] = useState(true);
 
-  // Load cart on mount or user change
+  // Load cart from backend or local storage
   useEffect(() => {
     let mounted = true;
 
@@ -49,17 +49,21 @@ export const CartProvider = ({ children }) => {
       setIsLoadingCart(true);
       try {
         if (user && user._id) {
-          // 🔵 Logged-in user → fetch from backend
+          // 🔵 Logged-in user
           const res = await axios.get(`${BASE_URL}/cart/${user._id}`);
           if (mounted) {
-            const normalized = res.data.items.map(i => ({
-              ...normalizeProduct(i.productId),
-              quantity: i.quantity,
-            }));
+            const cartData = res.data?.cart?.items || [];
+            const normalized = cartData.map(i => {
+              const product = i?.productId || {};
+              return {
+                ...normalizeProduct(product),
+                quantity: i?.quantity || 0,
+              };
+            });
             setCartItems(normalized);
           }
         } else {
-          // 🔵 Guest → load from local storage
+          // 🔵 Guest user → local storage
           const key = getCartStorageKey(null);
           const raw = await AsyncStorage.getItem(key);
           if (mounted) setCartItems(raw ? JSON.parse(raw) : []);
@@ -74,7 +78,7 @@ export const CartProvider = ({ children }) => {
 
     loadCart();
     return () => { mounted = false };
-  }, [user]); // ✅ reload when user logs in/out
+  }, [user]);
 
   // Persist cart locally
   useEffect(() => {

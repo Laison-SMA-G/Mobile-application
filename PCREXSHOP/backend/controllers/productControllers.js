@@ -1,22 +1,30 @@
-// controllers/productController.js
 import Product from "../models/Product.js";
+import path from "path";
 
-// Helper to build full image URL
+// Helper: generate API URL for product images
 const buildImageUrl = (req, imgPath) => {
   if (!imgPath) return null;
-  // Already absolute
-  if (imgPath.startsWith("http")) return imgPath;
+
+  // Extract file name from stored path
+  const filename = path.basename(imgPath);
+
+  // Base URL from environment variable or request
   const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-  return `${baseUrl}${imgPath.replace(/\\/g, "/")}`; // ensure forward slashes
+
+  return `${baseUrl}/api/products/${filename}`;
 };
 
+// -----------------------------
 // CREATE PRODUCT
+// -----------------------------
 export const createProduct = async (req, res) => {
   try {
     const { name, description, price, quantity, category } = req.body;
 
     // Save uploaded images paths
-    const images = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
+    const images = req.files
+      ? req.files.map(file => `/uploads/products/${file.filename}`)
+      : [];
 
     const newProduct = new Product({
       name,
@@ -30,9 +38,16 @@ export const createProduct = async (req, res) => {
 
     const savedProduct = await newProduct.save();
 
+    // Convert image paths to API URLs before sending to client
+    const formattedImages = images.map(img => buildImageUrl(req, img));
+
     res.status(201).json({
       message: "Product created successfully",
-      product: savedProduct,
+      product: {
+        ...savedProduct.toObject(),
+        images: formattedImages,
+        image: formattedImages.length > 0 ? formattedImages[0] : null,
+      },
     });
   } catch (err) {
     console.error("❌ Error creating product:", err);
@@ -40,7 +55,9 @@ export const createProduct = async (req, res) => {
   }
 };
 
+// -----------------------------
 // GET ALL PRODUCTS
+// -----------------------------
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find().lean();
@@ -61,5 +78,28 @@ export const getAllProducts = async (req, res) => {
   } catch (err) {
     console.error("❌ Error fetching products:", err);
     res.status(500).json({ message: "Server error while fetching products" });
+  }
+};
+
+// -----------------------------
+// OPTIONAL: Get product by ID
+// -----------------------------
+export const getProductById = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).lean();
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const imagesArray = Array.isArray(product.images) && product.images.length
+      ? product.images.map(img => buildImageUrl(req, img))
+      : [];
+
+    res.status(200).json({
+      ...product,
+      images: imagesArray,
+      image: imagesArray.length > 0 ? imagesArray[0] : null,
+    });
+  } catch (err) {
+    console.error("❌ Error fetching product:", err);
+    res.status(500).json({ message: "Server error while fetching product" });
   }
 };

@@ -8,10 +8,10 @@ import ProductCard from './ProductCard';
 const { width } = Dimensions.get('window');
 const THEME = {
   primary: '#074ec2',
-  secondary: '#5856D6', // Original secondary color for Pre-built
+  secondary: '#5856D6',
   text: '#1C1C1C',
   background: '#FAFAFA',
-  accent: '#34C759', // Green for positive tags
+  accent: '#34C759',
   cardBackground: '#FFFFFF',
   shadowColor: '#000',
 };
@@ -24,10 +24,7 @@ const PreBuiltSection = ({ title, data, navigation }) => {
     'Rubik-SemiBold': require('../assets/fonts/Rubik/static/Rubik-SemiBold.ttf'),
   });
 
-  if (!fontsLoaded) {
-    return null;
-  }
-
+  if (!fontsLoaded) return null;
   if (!data || data.length === 0) return null;
 
   const handleMorePress = () => {
@@ -45,26 +42,24 @@ const PreBuiltSection = ({ title, data, navigation }) => {
           <Icon name="arrow-right" size={18} color={THEME.primary} />
         </TouchableOpacity>
       </View>
-      
+
       <FlatList
         data={data}
         renderItem={({ item }) => (
           <View style={styles.productCardWrapper}>
-            <ProductCard 
-              product={item} 
+            <ProductCard
+              product={item}
               onPress={() => navigation.navigate('ProductDetails', { product: item })}
             />
           </View>
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())} // safe fallback
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        snapToInterval={width * 0.68 + 16} // Adjusted for potential card width changes
+        snapToInterval={width * 0.68 + 16}
         decelerationRate="fast"
       />
-      
-     
     </View>
   );
 };
@@ -84,10 +79,10 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10, // Increased gap for better spacing
+    gap: 10,
   },
   sectionTitle: {
-    fontSize: 18, // Slightly larger title
+    fontSize: 18,
     fontFamily: 'Rubik-Medium',
     color: THEME.text,
     letterSpacing: -0.4,
@@ -103,14 +98,12 @@ const styles = StyleSheet.create({
     color: THEME.primary,
   },
   listContent: {
-    paddingHorizontal: 12, // Increased horizontal padding for list
-    gap: 0, // Increased gap between product cards
+    paddingHorizontal: 12,
+    gap: 0,
   },
   productCardWrapper: {
     width: width * 0.5,
   },
-
-  
 });
 
 export default PreBuiltSection;

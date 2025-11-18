@@ -40,9 +40,24 @@ app.use(
 app.use(express.json());
 
 // ---------------------
-// FIXED: Serve uploads publicly
+// Serve uploads folder publicly (optional fallback)
 // ---------------------
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// ---------------------
+// Serve product images through API
+// ---------------------
+app.get("/api/products/:filename", (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, "uploads/products", filename);
+
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error("❌ Error sending file:", err);
+      res.status(404).send("Image not found");
+    }
+  });
+});
 
 // ---------------------
 // API Routes
@@ -68,7 +83,6 @@ mongoose
 // ---------------------
 // Start server on Render
 // ---------------------
-
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Backend running at http://0.0.0.0:${PORT}`);
 });
