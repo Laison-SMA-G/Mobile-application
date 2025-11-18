@@ -40,14 +40,33 @@ export const createProduct = async (req, res) => {
   }
 };
 
-// GET ALL PRODUCTS
+// GET ALL PRODUCTS (centralized for mobile)
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().lean();
+    // Pagination
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 50;
 
+    // Search & filter
+    const search = req.query.search || "";
+    const category = req.query.category || "";
+
+    const query = {};
+    if (search) query.name = { $regex: search, $options: "i" };
+    if (category && category !== "All") query.category = category;
+
+    // Fetch products from DB with pagination
+    const products = await Product.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    // Build absolute image URLs
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
     const formattedProducts = products.map((p) => {
       const imagesArray = Array.isArray(p.images) && p.images.length
-        ? p.images.map(img => buildImageUrl(req, img))
+        ? p.images.map(img => img.startsWith("http") ? img : `${baseUrl}${img.replace(/\\/g, "/")}`)
         : [];
 
       return {
@@ -57,7 +76,13 @@ export const getAllProducts = async (req, res) => {
       };
     });
 
-    res.status(200).json(formattedProducts);
+    res.status(200).json({
+      page,
+      limit,
+      count: formattedProducts.length,
+      products: formattedProducts,
+    });
+
   } catch (err) {
     console.error("❌ Error fetching products:", err);
     res.status(500).json({ message: "Server error while fetching products" });
