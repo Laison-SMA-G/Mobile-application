@@ -57,6 +57,7 @@ app.use("/api/chats", chatRoutes);
 // ---------------------
 // MongoDB Connection
 // ---------------------
+const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 mongoose
@@ -67,7 +68,7 @@ mongoose
 // ---------------------
 // Start server on Render
 // ---------------------
-const PORT = process.env.PORT || 5000;
+
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Backend running at http://0.0.0.0:${PORT}`);
 });
