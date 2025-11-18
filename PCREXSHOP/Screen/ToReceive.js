@@ -25,7 +25,6 @@ const ToReceive = ({ navigation }) => {
     const { orders = [] } = useOrders();
     const { user, loading } = useUser();
 
-    // Filter orders that are "To Receive"
     const toReceiveOrders = useMemo(() => {
         if (!Array.isArray(orders)) return [];
         return orders.filter(order => order.status === 'To Receive');
@@ -54,7 +53,7 @@ const ToReceive = ({ navigation }) => {
             onPress={() => navigation.navigate('OrderDetails', { orderId: item._id })}
         >
             <Image
-                source={{ uri: getImageUri(item.products?.[0]?.image) }}
+                source={getImageUri(item.products?.[0]?.image)}
                 style={styles.productImage}
             />
             <View style={styles.orderInfo}>

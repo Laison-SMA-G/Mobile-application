@@ -1,5 +1,5 @@
 // utils/getImageSource.js
-export const BASE_URL = "http://192.168.100.45:5000";
+export const BASE_URL = "https://Mobile-application-2.onrender.com/api/products";
 
 // Returns an object suitable for React Native <Image source={...}>
 export const getImageSource = (uri) => {

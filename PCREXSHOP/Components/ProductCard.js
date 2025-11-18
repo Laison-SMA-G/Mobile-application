@@ -42,8 +42,10 @@ const ProductCard = ({ product, onPress }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [isGalleryVisible, setGalleryVisible] = useState(false);
 
-  // ✅ Only one main image
-  const mainImage = product.image ? getImageUri(product.image) : getImageUri(null);
+ const mainImage = product.image
+  ? { uri: product.image }
+  : { uri: "https://via.placeholder.com/300x300.png?text=No+Image" };
+
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();

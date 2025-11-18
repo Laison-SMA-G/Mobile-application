@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useUser } from './UserContext';
 
-export const BASE_URL = "http://192.168.100.45:5000/api";
+export const BASE_URL = "https://Mobile-application-2.onrender.com/api";
 
 const OrderContext = createContext();
 

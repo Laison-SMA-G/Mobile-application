@@ -1,38 +1,59 @@
+// controllers/productController.js
 import Product from "../models/Product.js";
 
-// Utility to normalize URLs
-const formatImageUrl = (baseUrl, img) => {
-  if (!img || typeof img !== "string") return null;
-  if (img.startsWith("http")) return img; // Already absolute
-  return `${baseUrl}/${img.replace(/^\/+/, "").replace(/\\/g, "/")}`; // Normalize slashes
+// Helper to build full image URL
+const buildImageUrl = (req, imgPath) => {
+  if (!imgPath) return null;
+  // Already absolute
+  if (imgPath.startsWith("http")) return imgPath;
+  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+  return `${baseUrl}${imgPath.replace(/\\/g, "/")}`; // ensure forward slashes
 };
 
+// CREATE PRODUCT
+export const createProduct = async (req, res) => {
+  try {
+    const { name, description, price, quantity, category } = req.body;
+
+    // Save uploaded images paths
+    const images = req.files ? req.files.map(file => `/uploads/products/${file.filename}`) : [];
+
+    const newProduct = new Product({
+      name,
+      description,
+      price,
+      quantity,
+      category,
+      images,
+      image: images.length > 0 ? images[0] : null, // first image as main
+    });
+
+    const savedProduct = await newProduct.save();
+
+    res.status(201).json({
+      message: "Product created successfully",
+      product: savedProduct,
+    });
+  } catch (err) {
+    console.error("❌ Error creating product:", err);
+    res.status(500).json({ message: "Server error while creating product" });
+  }
+};
+
+// GET ALL PRODUCTS
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find().lean();
 
-    // Base URL for images
-    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-
     const formattedProducts = products.map((p) => {
-      // Single main image
-      let mainImage = null;
-      if (p.image) {
-        mainImage = formatImageUrl(baseUrl, p.image);
-      }
-
-      // Images array
-      const imagesArray =
-        Array.isArray(p.images) && p.images.length
-          ? p.images.map((img) => formatImageUrl(baseUrl, img))
-          : mainImage
-            ? [mainImage]
-            : [];
+      const imagesArray = Array.isArray(p.images) && p.images.length
+        ? p.images.map(img => buildImageUrl(req, img))
+        : [];
 
       return {
         ...p,
-        image: mainImage,
         images: imagesArray,
+        image: imagesArray.length > 0 ? imagesArray[0] : null, // main image
       };
     });
 

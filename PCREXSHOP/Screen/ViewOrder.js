@@ -1,10 +1,11 @@
 // screens/ViewOrder.js
 
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFonts } from 'expo-font';
 import { useOrders } from '../context/OrderContext';
+import { getImageUri } from '../utils/getImageUri';
 
 // --- Currency Formatting Utility ---
 const formatPrice = (value) => {
@@ -31,7 +32,7 @@ const statusStyles = {
 const OrderItem = ({ item }) => (
     <View style={styles.orderItemContainer}>
         <Image
-            source={{ uri: item?.images?.[0] || 'https://via.placeholder.com/60' }}
+            source={getImageUri(item.images?.[0])}
             style={styles.orderItemImage}
         />
         <View style={styles.orderItemDetails}>

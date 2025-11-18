@@ -10,6 +10,14 @@ const userSchema = new mongoose.Schema({
   // Password reset fields
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
+
+  // ⭐ ADD THIS — Store cart inside user document
+  cart: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+      quantity: { type: Number, default: 1 },
+    }
+  ]
 });
 
 // if the model doesn't exist, create a new model

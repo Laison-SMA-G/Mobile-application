@@ -1,9 +1,14 @@
+// routes/productRoutes.js
 import express from "express";
-import { getAllProducts } from "../controllers/productControllers.js";
+import { createProduct, getAllProducts } from "../controllers/productControllers.js";
+import upload from "../utils/multerConfig.js";
 
 const router = express.Router();
 
-// Get all products
+// GET all products
 router.get("/", getAllProducts);
+
+// POST a new product with multiple images (max 5)
+router.post("/add", upload.array("images", 5), createProduct);
 
 export default router;

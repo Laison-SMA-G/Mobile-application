@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-export const BASE_URL = "http://192.168.100.45:5000/api";
+export const BASE_URL = "https://Mobile-application-2.onrender.com/api";
 axios.defaults.baseURL = BASE_URL;
 
 const UserContext = createContext(null);
@@ -19,16 +19,24 @@ export const UserProvider = ({ children }) => {
     const restoreSession = async () => {
       try {
         const savedToken = await AsyncStorage.getItem('@token');
+        const savedUser = await AsyncStorage.getItem('user');
+
         if (savedToken) {
           setToken(savedToken);
           axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
-          const res = await axios.get('/users/me');
-          // ⚡ Normalize user object: ensure _id exists
-          setUser({ ...res.data.user, _id: res.data.user.id || res.data.user._id });
+          if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            setUser({ ...parsedUser, _id: parsedUser.id || parsedUser._id });
+          } else {
+            const res = await axios.get('/users/me');
+            setUser({ ...res.data.user, _id: res.data.user.id || res.data.user._id });
+            await AsyncStorage.setItem('user', JSON.stringify(res.data.user)); // Save for CartContext
+          }
         }
       } catch (err) {
         console.error('Restore session error:', err.response?.data || err);
         await AsyncStorage.removeItem('@token');
+        await AsyncStorage.removeItem('user');
         setUser(null);
         setToken(null);
       } finally {
@@ -38,6 +46,7 @@ export const UserProvider = ({ children }) => {
     restoreSession();
   }, []);
 
+  // ✅ Sign Up
   const signUp = async (fullName, email, password) => {
     setLoading(true);
     try {
@@ -51,8 +60,9 @@ export const UserProvider = ({ children }) => {
 
       setToken(newToken);
       await AsyncStorage.setItem('@token', newToken);
+      await AsyncStorage.setItem('user', JSON.stringify(userData)); // ✅ Save user for CartContext
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      setUser({ ...userData, _id: userData.id || userData._id }); // ⚡ normalize _id
+      setUser({ ...userData, _id: userData.id || userData._id });
 
       return { success: true, user: userData };
     } catch (err) {
@@ -63,6 +73,7 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // ✅ Sign In
   const signIn = async (email, password) => {
     setLoading(true);
     try {
@@ -76,8 +87,9 @@ export const UserProvider = ({ children }) => {
 
       setToken(newToken);
       await AsyncStorage.setItem('@token', newToken);
+      await AsyncStorage.setItem('user', JSON.stringify(userData)); // ✅ Save user for CartContext
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-      setUser({ ...userData, _id: userData.id || userData._id }); // ⚡ normalize _id
+      setUser({ ...userData, _id: userData.id || userData._id });
 
       return { success: true, user: userData };
     } catch (err) {
@@ -88,9 +100,11 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // ✅ Sign Out
   const signOut = async () => {
     try {
       await AsyncStorage.removeItem('@token');
+      await AsyncStorage.removeItem('user'); // ✅ remove user for CartContext
       setUser(null);
       setToken(null);
       delete axios.defaults.headers.common['Authorization'];
@@ -99,7 +113,7 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // ✅ Update profile
+  // ✅ Update Profile
   const updateUserProfile = async (updatedData) => {
     if (!user?._id) {
       console.error('Missing user ID', user);
@@ -110,7 +124,9 @@ export const UserProvider = ({ children }) => {
       const { data } = await axios.put('/users/profile', updatedData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUser({ ...data.user, _id: data.user.id || data.user._id });
+      const updatedUser = { ...data.user, _id: data.user.id || data.user._id };
+      setUser(updatedUser);
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser)); // ✅ keep AsyncStorage updated
       return { success: true };
     } catch (error) {
       console.error('Update profile error:', error.response?.data || error.message);

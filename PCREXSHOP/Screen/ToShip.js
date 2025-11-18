@@ -25,7 +25,6 @@ const ToShip = ({ navigation }) => {
     const { orders = [] } = useOrders();
     const { user, loading } = useUser();
 
-    // Filter orders that are "To Ship"
     const toShipOrders = useMemo(() => {
         if (!Array.isArray(orders)) return [];
         return orders.filter(order => order.status === 'To Ship');
@@ -54,7 +53,7 @@ const ToShip = ({ navigation }) => {
             onPress={() => navigation.navigate('OrderDetails', { orderId: item._id })}
         >
             <Image
-                source={{ uri: getImageUri(item.products?.[0]?.image) }}
+                source={getImageUri(item.products?.[0]?.image)}
                 style={styles.productImage}
             />
             <View style={styles.orderInfo}>
