@@ -1,32 +1,37 @@
 // utils/api.js
-import { BASE_URL } from './config';
-// Base URL of your backend API
+const PROD_BASE_URL = "https://mobile-application-2.onrender.com/api";
 
-/**
- * Returns a valid image source for React Native Image component
- * @param {string|null} imagePath - Relative path of the image from the backend
- * @returns {object} - Image source object compatible with <Image>
- */
-export const getImageSource = (imagePath) => {
-  if (!imagePath) {
-    return { uri: 'https://via.placeholder.com/150' }; // remote placeholder
-  }
-  return { uri: `${BASE_URL}/${imagePath}` };
-};
+import { getImageSource, fetchProducts } from "../utils/api";
 
-
-/**
- * Helper function to fetch products from backend
- * @returns {Promise<Array>} - Array of products
- */
-export const fetchProducts = async () => {
+const fetchAndFormatProducts = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/products`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    console.error("Failed to fetch products:", err);
-    return [];
+    const data = await fetchProducts(); // returns array of products with Cloudinary URLs
+
+    const formatted = data.map((item) => {
+      const quantity = typeof item.quantity === "number" ? item.quantity : 0;
+
+      // Use Cloudinary URLs directly
+      const images =
+        Array.isArray(item.images) && item.images.length
+          ? item.images
+          : ["https://via.placeholder.com/150"]; // fallback image
+
+      return {
+        ...item,
+        quantity,
+        images,
+        image: images[0], // main thumbnail
+      };
+    });
+
+    setAllProducts(formatted);
+    setFilteredProducts(formatted);
+
+    const uniqueCategories = [
+      ...new Set(formatted.map((i) => i.category || "Unknown")),
+    ];
+    setCategories(uniqueCategories);
+  } catch (error) {
+    console.error("❌ Failed to fetch products:", error.message || error);
   }
 };

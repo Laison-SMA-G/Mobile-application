@@ -1,4 +1,3 @@
-// screens/Products.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -9,17 +8,17 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  Image,
 } from "react-native";
 import { useFonts } from "expo-font";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useCart } from "../context/CartContext";
 import CategoryList from "../Components/CategoryList";
 import ProductCard from "../Components/ProductCard";
-import api from "../utils/axiosconfig";
-import { getImageUri } from "../utils/getImageUri";
+import { fetchProducts, getImageSource } from "../utils/api";
 
 const THEME = {
-  primary: "#074ec2", 
+  primary: "#074ec2",
   background: "#FAFAFA",
   text: "#1C1C1C",
   cardBackground: "#FFFFFF",
@@ -40,28 +39,28 @@ const Products = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { itemCount } = useCart();
 
+  // ------------------------------
+  // Fetch products from backend
+  // ------------------------------
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchAndFormatProducts = async () => {
       try {
-        const res = await api.get("/products");
-        const data = res.data;
+        const data = await fetchProducts();
 
         const formatted = data.map((item) => {
           const quantity = typeof item.quantity === "number" ? item.quantity : 0;
 
-          // Use centralized image URLs
+          // Use Cloudinary URLs directly, fallback to placeholder
           const images =
             Array.isArray(item.images) && item.images.length
-              ? item.images.map((img) => getImageUri(img))
-              : item.image
-                ? [getImageUri(item.image)]
-                : [getImageUri(null)];
+              ? item.images
+              : ["https://via.placeholder.com/150"];
 
           return {
             ...item,
             quantity,
             images,
-            image: images[0],
+            image: images[0], // main thumbnail
           };
         });
 
@@ -69,20 +68,25 @@ const Products = ({ navigation }) => {
         setFilteredProducts(formatted);
 
         const uniqueCategories = [
-          ...new Set(formatted.map((i) => i.category?.name || i.category || "Unknown")),
+          ...new Set(formatted.map((i) => i.category || "Unknown")),
         ];
         setCategories(uniqueCategories);
       } catch (error) {
-        console.error("❌ Failed to fetch products:", error.response?.data || error.message);
+        console.error("❌ Failed to fetch products:", error.message || error);
       }
     };
 
-    fetchProducts();
+    fetchAndFormatProducts();
   }, []);
 
+  // ------------------------------
+  // Filter by search query
+  // ------------------------------
   useEffect(() => {
     const filtered = searchQuery.trim()
-      ? allProducts.filter((p) => p.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+      ? allProducts.filter((p) =>
+          p.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
       : allProducts;
 
     setFilteredProducts(filtered);
@@ -103,6 +107,7 @@ const Products = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME.primary} />
 
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="chevron-left" size={28} color={THEME.cardBackground} />
@@ -133,8 +138,10 @@ const Products = ({ navigation }) => {
         </View>
       </View>
 
+      {/* Categories */}
       <CategoryList categories={categories} navigation={navigation} />
 
+      {/* Products Grid */}
       <FlatList
         data={filteredProducts}
         renderItem={renderProduct}

@@ -11,7 +11,7 @@ const buildImageUrl = (req, imgPath) => {
   // Base URL from environment variable or request
   const baseUrl = process.env.BASE_URL || `https://${req.get("host")}`;
 
-  return `${baseUrl}/api/products/${filename}`;
+  return `${baseUrl}  ${filename}`;
 };
 
 // -----------------------------  

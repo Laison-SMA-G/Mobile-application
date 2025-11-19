@@ -6,11 +6,12 @@ import upload from "../utils/multerConfig.js";
 const router = express.Router();
 
 // desktop routes
-router.post("/add", upload.array("images", 5), createProduct);
-router.delete("/product", deleteProduct)
+router.post("/add", createProduct);         // expects JSON with Cloudinary image URLs
+router.delete("/product/:id", deleteProduct);
+
 
 // mobile application routes
 router.get("/", getAllProducts); 
-router.delete("/mobile/product")
+router.delete("/mobile/product/:id", deleteProduct)
 
 export default router;
