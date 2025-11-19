@@ -16,18 +16,14 @@ import { useCart } from "../context/CartContext";
 import CategoryList from "../Components/CategoryList";
 import ProductCard from "../Components/ProductCard";
 import api from "../utils/axiosconfig";
+import { getImageUri } from "../utils/getImageUri";
 
 const THEME = {
-  primary: "#074ec2",
+  primary: "#074ec2", 
   background: "#FAFAFA",
   text: "#1C1C1C",
   cardBackground: "#FFFFFF",
   icons: "#FFFFFF",
-};
-
-const getImageUri = (imagePath) => {
-  if (!imagePath) return require('../assets/PCREXBIGLOGOMOBILE.png'); 
-  return { uri: imagePath };
 };
 
 const Products = ({ navigation }) => {
@@ -53,16 +49,19 @@ const Products = ({ navigation }) => {
         const formatted = data.map((item) => {
           const quantity = typeof item.quantity === "number" ? item.quantity : 0;
 
+          // Use centralized image URLs
           const images =
             Array.isArray(item.images) && item.images.length
               ? item.images.map((img) => getImageUri(img))
-              : [getImageUri(item.image)];
+              : item.image
+                ? [getImageUri(item.image)]
+                : [getImageUri(null)];
 
           return {
             ...item,
             quantity,
             images,
-            image: images[0] || getImageUri(null),
+            image: images[0],
           };
         });
 
@@ -110,7 +109,10 @@ const Products = ({ navigation }) => {
         </TouchableOpacity>
 
         <View style={styles.rightIcons}>
-          <TouchableOpacity onPress={() => navigation.navigate("SearchProduct")} style={styles.searchIconContainer}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("SearchProduct")}
+            style={styles.searchIconContainer}
+          >
             <Icon name="magnify" size={26} color={THEME.icons} />
           </TouchableOpacity>
 
@@ -151,10 +153,27 @@ const Products = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingBottom: Platform.OS === "ios" ? 80 : 80, backgroundColor: THEME.background },
-  header: { backgroundColor: THEME.primary, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
+  header: {
+    backgroundColor: THEME.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
   rightIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   searchIconContainer: { padding: 5 },
-  badgeContainer: { position: "absolute", top: -4, right: -6, backgroundColor: "#EE2323", borderRadius: 9, width: 18, height: 18, justifyContent: "center", alignItems: "center" },
+  badgeContainer: {
+    position: "absolute",
+    top: -4,
+    right: -6,
+    backgroundColor: "#EE2323",
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   badgeText: { color: "#FFFFFF", fontSize: 10, fontWeight: "bold" },
   gridCardContainer: { width: "50%" },
   noResultsContainer: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 50 },

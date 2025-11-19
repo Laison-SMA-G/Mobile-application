@@ -9,12 +9,12 @@ const buildImageUrl = (req, imgPath) => {
   const filename = path.basename(imgPath);
 
   // Base URL from environment variable or request
-  const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+  const baseUrl = process.env.BASE_URL || `https://${req.get("host")}`;
 
   return `${baseUrl}/api/products/${filename}`;
 };
 
-// -----------------------------
+// -----------------------------  
 // CREATE PRODUCT
 // -----------------------------
 export const createProduct = async (req, res) => {
@@ -103,3 +103,15 @@ export const getProductById = async (req, res) => {
     res.status(500).json({ message: "Server error while fetching product" });
   }
 };
+
+
+export const deleteProduct = async () => {
+   try {
+    const deleted = await Product.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Product not found" });
+    res.json({ message: "Product deleted successfully" });
+  } catch (err) {
+    console.error("❌ Error deleting product:", err);
+    res.status(500).json({ error: err.message });
+  }
+}

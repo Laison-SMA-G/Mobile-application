@@ -1,17 +1,6 @@
 // components/ProductCard.js
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-  Image,
-  Modal,
-  Pressable,
-  Dimensions,
-  Platform,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Modal, Pressable, Dimensions, Platform } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useCart } from "../context/CartContext";
 import { useFonts } from "expo-font";
@@ -42,10 +31,7 @@ const ProductCard = ({ product, onPress }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [isGalleryVisible, setGalleryVisible] = useState(false);
 
- const mainImage = product.image
-  ? { uri: product.image }
-  : { uri: "https://via.placeholder.com/300x300.png?text=No+Image" };
-
+  const mainImage = product.image || getImageUri(null);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
@@ -82,7 +68,6 @@ const ProductCard = ({ product, onPress }) => {
     <>
       <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
         <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
-          {/* ✅ Single main image */}
           <TouchableOpacity onPress={() => setGalleryVisible(true)}>
             <Image source={mainImage} style={styles.image} resizeMode="cover" />
           </TouchableOpacity>
@@ -164,16 +149,16 @@ const styles = StyleSheet.create({
   addToCartButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: THEME.COLORS.primary, justifyContent: "center", alignItems: "center", elevation: 2 },
   addToCartButtonDisabled: { backgroundColor: "#CCCCCC" },
   modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  alertModalContainer: { width: "80%", backgroundColor: THEME.COLORS.card, borderRadius: 15, paddingVertical: 25, paddingHorizontal: 20, alignItems: "center", elevation: 5 },
-  alertModalTitle: { fontSize: 18, fontFamily: "Rubik-Bold", color: THEME.COLORS.text, marginBottom: 8 },
-  alertModalMessage: { fontSize: 15, fontFamily: "Rubik-Regular", color: "#4A4A4A", textAlign: "center", marginBottom: 25, lineHeight: 22 },
-  alertModalButton: { backgroundColor: THEME.COLORS.primary, borderRadius: 10, paddingVertical: 12, width: "100%", alignItems: "center" },
-  alertModalButtonText: { color: THEME.COLORS.card, fontSize: 16, fontFamily: "Rubik-SemiBold" },
-  toastOverlay: { flex: 1, justifyContent: "center", alignItems: "center" },
-  toastContainer: { backgroundColor: "#4BB543", borderRadius: 10, paddingVertical: 15, paddingHorizontal: 25, alignItems: "center" },
-  toastText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Rubik-Medium", textAlign: "center" },
+  alertModalContainer: { width: "80%", backgroundColor: THEME.COLORS.card, borderRadius: 15, paddingVertical: 25, paddingHorizontal: 20, alignItems: "center" },
+  alertModalTitle: { fontSize: 18, fontFamily: "Rubik-Bold", marginBottom: 8 },
+  alertModalMessage: { fontSize: 14, fontFamily: "Rubik-Regular", color: "#333", textAlign: "center", marginBottom: 15 },
+  alertModalButton: { backgroundColor: THEME.COLORS.primary, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 25 },
+  alertModalButtonText: { color: "#fff", fontSize: 14, fontFamily: "Rubik-SemiBold" },
+  toastOverlay: { position: "absolute", bottom: 60, left: 0, right: 0, alignItems: "center" },
+  toastContainer: { backgroundColor: "#333", borderRadius: 20, paddingHorizontal: 20, paddingVertical: 10 },
+  toastText: { color: "#fff", fontFamily: "Rubik-Medium" },
   galleryOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.95)", justifyContent: "center", alignItems: "center" },
-  fullscreenImage: { height: Dimensions.get("window").width, resizeMode: "contain", marginVertical: 20 },
+  fullscreenImage: { height: "80%" },
   galleryCloseButton: { position: "absolute", top: 40, right: 20 },
 });
 
