@@ -5,14 +5,18 @@ import path from "path";
 const buildImageUrl = (req, imgPath) => {
   if (!imgPath) return null;
 
-  // Extract file name from stored path
-  const filename = path.basename(imgPath);
+  // ⭐ If Cloudinary URL → return as-is
+  if (imgPath.startsWith("https://res.cloudinary.com")) {
+    return imgPath;
+  }
 
-  // Base URL from environment variable or request
+  // Otherwise convert local file path
+  const filename = path.basename(imgPath);
   const baseUrl = process.env.BASE_URL || `https://${req.get("host")}`;
 
-  return `${baseUrl}  ${filename}`;
+  return `${baseUrl}/${filename}`;
 };
+
 
 // -----------------------------  
 // CREATE PRODUCT

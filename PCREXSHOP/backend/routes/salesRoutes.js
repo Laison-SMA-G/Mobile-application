@@ -8,12 +8,12 @@ const router = express.Router();
 router.use(auth);
 
 // ✅ Fetch sales summary (with optional ?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD)
-router.get("/summary", getSalesSummary);
+router.post("/summary", postSalesSummary);
 
 // ✅ Fetch all sales (detailed list)
-router.get("/", getAllSales);
+router.post("/", postAllSales);
 
 // ✅ Fetch a single sale by ID
-router.get("/:id", getSaleById);
+router.post("/:id", postSaleById);
 
 export default router;

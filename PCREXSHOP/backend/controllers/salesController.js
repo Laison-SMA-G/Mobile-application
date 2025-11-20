@@ -1,11 +1,38 @@
 import Sale from "../models/Sale.js";
 import mongoose from "mongoose";
+import express from "express";
 
 /**
  * @desc Get full sales summary with optional date filtering
  * @route GET /api/sales/summary
  * @access Private (Admin)
  */
+
+router.post("/", async (req, res) => {
+  try {
+    const { items, totalAmount, userId } = req.body; // items: [{productId, name, quantity, price}]
+    
+    // Validate required fields
+    if (!items || !totalAmount || !userId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    const sale = new Sale({
+      items,
+      totalAmount,
+      user: userId,
+      date: new Date(),
+    });
+    await sale.save();
+    
+    res.status(201).json(sale); // return the created sale
+  } catch (err) {
+    console.error("Error creating sale:", err);
+    res.status(500).json({ error: "Failed to create sale" });
+  }
+});
+
+
+
 export const getSalesSummary = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -87,11 +114,7 @@ export const getAllSales = async (req, res) => {
   }
 };
 
-/**
- * @desc Get a single sale by ID
- * @route GET /api/sales/:id
- * @access Private (Admin)
- */
+
 export const getSaleById = async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id)

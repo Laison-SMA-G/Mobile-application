@@ -25,14 +25,14 @@ const ProductCard = ({ product, onPress }) => {
   });
 
   const { addToCart, cartItems } = useCart();
-  const [isSt9ockModalVisible, setStockModalVisible] = useState(false);
+  const [isStockModalVisible, setStockModalVisible] = useState(false);
   const [stockModalMessage, setStockModalMessage] = useState("");
   const [isSuccessToastVisible, setSuccessToastVisible] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [isGalleryVisible, setGalleryVisible] = useState(false);
 
   const mainImage = product.image || getImageUri(null);
-
+  console.log(mainImage);
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
   }, []);
@@ -123,7 +123,7 @@ const ProductCard = ({ product, onPress }) => {
       {/* Fullscreen Gallery */}
       <Modal visible={isGalleryVisible} transparent animationType="fade">
         <View style={styles.galleryOverlay}>
-          <Image source={ mainImage} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
+          <Image source={{uri: mainImage}} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
           <TouchableOpacity style={styles.galleryCloseButton} onPress={() => setGalleryVisible(false)}>
             <Icon name="close-circle" size={36} color="#FFF" />
           </TouchableOpacity>
