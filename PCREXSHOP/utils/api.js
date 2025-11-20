@@ -1,16 +1,19 @@
 // utils/api.js
-const PROD_BASE_URL = "https://mobile-application-2.onrender.com/api";
+export const BASE_URL = "https://mobile-application-2.onrender.com/api";
 
-import { getImageSource, fetchProducts } from "../utils/api";
-
-const fetchAndFormatProducts = async () => {
+// Fetch products from backend and format them
+export const fetchProducts = async () => {
   try {
-    const data = await fetchProducts(); // returns array of products with Cloudinary URLs
+    const response = await fetch(`${BASE_URL}/products`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
 
-    const formatted = data.map((item) => {
+    // Format each product
+    return data.map((item) => {
       const quantity = typeof item.quantity === "number" ? item.quantity : 0;
 
-      // Use Cloudinary URLs directly
       const images =
         Array.isArray(item.images) && item.images.length
           ? item.images
@@ -23,15 +26,16 @@ const fetchAndFormatProducts = async () => {
         image: images[0], // main thumbnail
       };
     });
-
-    setAllProducts(formatted);
-    setFilteredProducts(formatted);
-
-    const uniqueCategories = [
-      ...new Set(formatted.map((i) => i.category || "Unknown")),
-    ];
-    setCategories(uniqueCategories);
   } catch (error) {
-    console.error("❌ Failed to fetch products:", error.message || error);
+    console.error("❌ Error fetching products:", error.message || error);
+    return [];
   }
+};
+
+// Get image source safely
+export const getImageSource = (uri) => {
+  if (!uri || typeof uri !== "string") {
+    return { uri: "https://via.placeholder.com/150" };
+  }
+  return { uri };
 };

@@ -29,7 +29,7 @@ const normalizeProduct = (p = {}) => {
   return {
     ...p,
     id,
-    _id: p._id || p.id || id,
+    _id: id,
     stock: Number.isNaN(stock) ? 0 : stock,
     images,
     price,
@@ -91,6 +91,10 @@ export const CartProvider = ({ children }) => {
   // Add to cart
   const addToCart = async (product) => {
     const p = normalizeProduct(product);
+    if (!p._id) {
+      console.error("❌ Cannot add to cart: missing _id", product);
+      return;
+    }
 
     try {
       if (user && user._id) {
@@ -120,7 +124,7 @@ export const CartProvider = ({ children }) => {
       if (user && user._id) {
         await axios.post(`${BASE_URL}/cart/add`, {
           userId: user._id,
-          productId: itemId,
+          productId: item._id,
           quantity: 1,
         });
       }
@@ -129,7 +133,7 @@ export const CartProvider = ({ children }) => {
     }
 
     setCartItems(prev =>
-      prev.map(i => i._id === itemId ? { ...i, quantity: Math.min(i.quantity + 1, i.stock) } : i)
+      prev.map(i => i._id === item._id ? { ...i, quantity: Math.min(i.quantity + 1, i.stock) } : i)
     );
   };
 
@@ -138,13 +142,13 @@ export const CartProvider = ({ children }) => {
     const item = cartItems.find(i => i._id === itemId);
     if (!item) return;
 
-    if (item.quantity === 1) return removeFromCart(itemId);
+    if (item.quantity === 1) return removeFromCart(item._id);
 
     try {
       if (user && user._id) {
         await axios.post(`${BASE_URL}/cart/add`, {
           userId: user._id,
-          productId: itemId,
+          productId: item._id,
           quantity: -1,
         });
       }
@@ -153,21 +157,24 @@ export const CartProvider = ({ children }) => {
     }
 
     setCartItems(prev =>
-      prev.map(i => i._id === itemId ? { ...i, quantity: Math.max(i.quantity - 1, 1) } : i)
+      prev.map(i => i._id === item._id ? { ...i, quantity: Math.max(i.quantity - 1, 1) } : i)
     );
   };
 
   // Remove item
   const removeFromCart = async (itemId) => {
+    const item = cartItems.find(i => i._id === itemId);
+    if (!item) return;
+
     try {
       if (user && user._id) {
-        await axios.delete(`${BASE_URL}/cart/${user._id}/${itemId}`);
+        await axios.delete(`${BASE_URL}/cart/${user._id}/${item._id}`);
       }
     } catch (err) {
       console.error("Failed syncing removeFromCart:", err);
     }
 
-    setCartItems(prev => prev.filter(i => i._id !== itemId));
+    setCartItems(prev => prev.filter(i => i._id !== item._id));
   };
 
   // Clear cart

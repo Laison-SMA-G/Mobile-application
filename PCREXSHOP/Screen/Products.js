@@ -8,14 +8,13 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
-  Image,
 } from "react-native";
 import { useFonts } from "expo-font";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useCart } from "../context/CartContext";
 import CategoryList from "../Components/CategoryList";
 import ProductCard from "../Components/ProductCard";
-import { fetchProducts, getImageSource } from "../utils/api";
+import { fetchProducts } from "../utils/api";
 
 const THEME = {
   primary: "#074ec2",
@@ -40,35 +39,17 @@ const Products = ({ navigation }) => {
   const { itemCount } = useCart();
 
   // ------------------------------
-  // Fetch products from backend
+  // Fetch products and format
   // ------------------------------
   useEffect(() => {
-    const fetchAndFormatProducts = async () => {
+    const fetchAndSetProducts = async () => {
       try {
-        const data = await fetchProducts();
-
-        const formatted = data.map((item) => {
-          const quantity = typeof item.quantity === "number" ? item.quantity : 0;
-
-          // Use Cloudinary URLs directly, fallback to placeholder
-          const images =
-            Array.isArray(item.images) && item.images.length
-              ? item.images
-              : ["https://via.placeholder.com/150"];
-
-          return {
-            ...item,
-            quantity,
-            images,
-            image: images[0], // main thumbnail
-          };
-        });
-
-        setAllProducts(formatted);
-        setFilteredProducts(formatted);
+        const products = await fetchProducts();
+        setAllProducts(products);
+        setFilteredProducts(products);
 
         const uniqueCategories = [
-          ...new Set(formatted.map((i) => i.category || "Unknown")),
+          ...new Set(products.map((p) => p.category || "Unknown")),
         ];
         setCategories(uniqueCategories);
       } catch (error) {
@@ -76,7 +57,7 @@ const Products = ({ navigation }) => {
       }
     };
 
-    fetchAndFormatProducts();
+    fetchAndSetProducts();
   }, []);
 
   // ------------------------------
@@ -145,7 +126,9 @@ const Products = ({ navigation }) => {
       <FlatList
         data={filteredProducts}
         renderItem={renderProduct}
-        keyExtractor={(item) => item._id || item.id?.toString() || Math.random().toString()}
+        keyExtractor={(item) =>
+          item._id || item.id?.toString() || Math.random().toString()
+        }
         numColumns={2}
         contentContainerStyle={{ paddingHorizontal: 8 }}
         ListEmptyComponent={
@@ -159,7 +142,11 @@ const Products = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingBottom: Platform.OS === "ios" ? 80 : 80, backgroundColor: THEME.background },
+  container: {
+    flex: 1,
+    paddingBottom: Platform.OS === "ios" ? 80 : 80,
+    backgroundColor: THEME.background,
+  },
   header: {
     backgroundColor: THEME.primary,
     flexDirection: "row",
@@ -183,8 +170,17 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: "#FFFFFF", fontSize: 10, fontWeight: "bold" },
   gridCardContainer: { width: "50%" },
-  noResultsContainer: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 50 },
-  noResultsText: { fontSize: 16, color: "#6c757d", fontFamily: "Rubik-Medium" },
+  noResultsContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 50,
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: "#6c757d",
+    fontFamily: "Rubik-Medium",
+  },
 });
 
 export default Products;
