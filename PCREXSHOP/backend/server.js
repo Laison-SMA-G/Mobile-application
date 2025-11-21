@@ -13,7 +13,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
-import addressRoutes from './routes/addressRoutes.js';
+import addressRoutes from "./routes/addressRoutes.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -69,7 +69,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes); // centralized products API
 app.use("/api/cart", cartRoutes);
 app.use("/api/chats", chatRoutes);
-app.use('/api/users/:userId/addresses', addressRoutes);
+app.use("/api/users/:userId/addresses", addressRoutes);
 
 // ---------------------
 // MongoDB Connection
@@ -86,5 +86,5 @@ mongoose
 // Start server on Render
 // ---------------------
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Backend running at http://0.0.0.0:${PORT}`);
+  console.log(`🚀 Server running on port http://localhost:${PORT}`);
 });

@@ -60,12 +60,7 @@ export default function HomeScreen({ navigation }) {
         const formatted = data.map((item) => {
           const quantity = typeof item.quantity === "number" ? item.quantity : 0;
 
-          const images =
-            Array.isArray(item.images) && item.images.length
-              ? item.images.map((img) => getImageUri(img))
-              : item.image
-                ? [getImageUri(item.image)]
-                : [getImageUri(null)];
+          const images = item.images;
 
           const categoryObj = item.category
             ? typeof item.category === "string"
@@ -93,9 +88,7 @@ export default function HomeScreen({ navigation }) {
         const bestSellers = formatted.filter((p) => p.isBestSeller).slice(0, 8);
         setBestSellerProducts(bestSellers);
 
-        const preBuilt = formatted
-          .filter((p) => p.category?.name.toLowerCase().includes("pre-built"))
-          .slice(0, 8);
+        const preBuilt = formatted.filter((p) => p.category?.name.toLowerCase().includes("pre-built")).slice(0, 8);
         setPreBuiltProducts(preBuilt);
       } catch (err) {
         console.error("❌ Failed to fetch products:", err);
@@ -126,11 +119,7 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.leftHeader}>
-          <Image
-            source={require("../assets/PCREXBIGLOGOMOBILE.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Image source={require("../assets/PCREXBIGLOGOMOBILE.png")} style={styles.logo} resizeMode="contain" />
         </View>
         <View style={styles.rightHeader}>
           <TouchableOpacity onPress={() => navigation.navigate("SearchProduct")} style={styles.searchIconContainer}>
@@ -171,10 +160,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.allProductsGrid}>
             {allProductsDisplay.map((item) => (
               <View key={item._id || item.id} style={styles.gridCardContainer}>
-                <ProductCard
-                  product={item}
-                  onPress={() => navigation.navigate("ProductDetails", { product: item })}
-                />
+                <ProductCard product={item} onPress={() => navigation.navigate("ProductDetails", { product: item })} />
               </View>
             ))}
             {allProductsDisplay.length === 0 && (
@@ -191,16 +177,41 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: THEME.background, paddingBottom: Platform.OS === "android" ? 80 : 70 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10, backgroundColor: THEME.background, borderBottomWidth: 1, borderBottomColor: "#eee" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: THEME.background,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
   leftHeader: { flexDirection: "row", alignItems: "center" },
   rightHeader: { flexDirection: "row", alignItems: "center" },
   logo: { width: 80, height: 50 },
   searchIconContainer: { padding: 5 },
   headerIcon: { marginLeft: 15 },
-  badgeContainer: { position: "absolute", top: -5, right: -5, backgroundColor: "red", borderRadius: 10, width: 18, height: 18, justifyContent: "center", alignItems: "center" },
+  badgeContainer: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "red",
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   badgeText: { color: "white", fontSize: 10, fontWeight: "bold" },
   sectionContainer: { marginTop: 20, paddingVertical: 15, borderRadius: 10 },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, marginBottom: 10 },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
   sectionTitle: { fontSize: 18, fontFamily: "Rubik-SemiBold", color: THEME.text },
   allProductsGrid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 8 },
   gridCardContainer: { width: "50%" },

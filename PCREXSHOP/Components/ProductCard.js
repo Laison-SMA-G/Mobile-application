@@ -1,6 +1,17 @@
 // components/ProductCard.js
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Modal, Pressable, Dimensions, Platform } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Image,
+  Modal,
+  Pressable,
+  Dimensions,
+  Platform,
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useCart } from "../context/CartContext";
 import { useFonts } from "expo-font";
@@ -33,6 +44,7 @@ const ProductCard = ({ product, onPress }) => {
 
   const mainImage = product.image || getImageUri(null);
   console.log(mainImage);
+
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
   }, []);
@@ -43,7 +55,7 @@ const ProductCard = ({ product, onPress }) => {
   const isOutOfStock = actualStock === 0;
 
   const handleAddToCart = () => {
-    const itemInCart = cartItems.find(item => item._id === product._id || item.id === product.id);
+    const itemInCart = cartItems.find((item) => item._id === product._id || item.id === product.id);
     const currentQuantityInCart = itemInCart ? itemInCart.quantity : 0;
 
     if (isOutOfStock) {
@@ -69,12 +81,14 @@ const ProductCard = ({ product, onPress }) => {
       <Animated.View style={[styles.wrapper, { opacity: fadeAnim }]}>
         <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.9}>
           <TouchableOpacity onPress={() => setGalleryVisible(true)}>
-            <Image source={mainImage} style={styles.image} resizeMode="cover" />
+            <Image source={{ uri: mainImage }} style={styles.image} resizeMode="cover" />
           </TouchableOpacity>
 
           <View style={styles.infoContainer}>
             <View style={styles.titleRow}>
-              <Text style={styles.name} numberOfLines={2}>{product.name || "Unnamed Product"}</Text>
+              <Text style={styles.name} numberOfLines={2}>
+                {product.name || "Unnamed Product"}
+              </Text>
               <View style={styles.ratingContainer}>
                 <Icon name="star" size={15} color="#FFC700" />
                 <Text style={styles.ratingText}>({product.rate || 0})</Text>
@@ -93,12 +107,21 @@ const ProductCard = ({ product, onPress }) => {
             </View>
           </View>
 
-          {isOutOfStock && <View style={styles.outOfStockOverlay}><Text style={styles.outOfStockText}>Out of Stock</Text></View>}
+          {isOutOfStock && (
+            <View style={styles.outOfStockOverlay}>
+              <Text style={styles.outOfStockText}>Out of Stock</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </Animated.View>
 
       {/* Stock Modal */}
-      <Modal visible={isStockModalVisible} transparent animationType="fade" onRequestClose={() => setStockModalVisible(false)}>
+      <Modal
+        visible={isStockModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStockModalVisible(false)}
+      >
         <Pressable style={styles.modalOverlay} onPress={() => setStockModalVisible(false)}>
           <Pressable style={styles.alertModalContainer}>
             <Icon name="cart-off" size={48} color={THEME.COLORS.primary} style={{ marginBottom: 12 }} />
@@ -123,7 +146,11 @@ const ProductCard = ({ product, onPress }) => {
       {/* Fullscreen Gallery */}
       <Modal visible={isGalleryVisible} transparent animationType="fade">
         <View style={styles.galleryOverlay}>
-          <Image source={{uri: mainImage}} style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]} resizeMode="contain" />
+          <Image
+            source={{ uri: mainImage }}
+            style={[styles.fullscreenImage, { width: SCREEN_WIDTH }]}
+            resizeMode="contain"
+          />
           <TouchableOpacity style={styles.galleryCloseButton} onPress={() => setGalleryVisible(false)}>
             <Icon name="close-circle" size={36} color="#FFF" />
           </TouchableOpacity>
@@ -135,9 +162,28 @@ const ProductCard = ({ product, onPress }) => {
 
 const styles = StyleSheet.create({
   wrapper: { flex: 1, margin: 8 },
-  container: { flex: 1, backgroundColor: THEME.COLORS.card, borderRadius: 15, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 1, elevation: Platform.OS === "android" ? 1 : 0 },
+  container: {
+    flex: 1,
+    backgroundColor: THEME.COLORS.card,
+    borderRadius: 15,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
+    elevation: Platform.OS === "android" ? 1 : 0,
+  },
   image: { width: "100%", height: 150, borderRadius: 8 },
-  outOfStockOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" },
+  outOfStockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   outOfStockText: { color: THEME.COLORS.card, fontSize: 16, fontFamily: "Rubik-Bold" },
   infoContainer: { flex: 1, padding: 12, justifyContent: "space-between" },
   titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 2 },
@@ -146,13 +192,39 @@ const styles = StyleSheet.create({
   ratingText: { fontSize: 13, color: "#888", fontFamily: "Rubik-Regular", marginLeft: 4 },
   footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 12 },
   price: { color: THEME.COLORS.primary, fontSize: 18, fontFamily: "Rubik-Medium" },
-  addToCartButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: THEME.COLORS.primary, justifyContent: "center", alignItems: "center", elevation: 2 },
+  addToCartButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: THEME.COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 2,
+  },
   addToCartButtonDisabled: { backgroundColor: "#CCCCCC" },
   modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  alertModalContainer: { width: "80%", backgroundColor: THEME.COLORS.card, borderRadius: 15, paddingVertical: 25, paddingHorizontal: 20, alignItems: "center" },
+  alertModalContainer: {
+    width: "80%",
+    backgroundColor: THEME.COLORS.card,
+    borderRadius: 15,
+    paddingVertical: 25,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
   alertModalTitle: { fontSize: 18, fontFamily: "Rubik-Bold", marginBottom: 8 },
-  alertModalMessage: { fontSize: 14, fontFamily: "Rubik-Regular", color: "#333", textAlign: "center", marginBottom: 15 },
-  alertModalButton: { backgroundColor: THEME.COLORS.primary, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 25 },
+  alertModalMessage: {
+    fontSize: 14,
+    fontFamily: "Rubik-Regular",
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  alertModalButton: {
+    backgroundColor: THEME.COLORS.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+  },
   alertModalButtonText: { color: "#fff", fontSize: 14, fontFamily: "Rubik-SemiBold" },
   toastOverlay: { position: "absolute", bottom: 60, left: 0, right: 0, alignItems: "center" },
   toastContainer: { backgroundColor: "#333", borderRadius: 20, paddingHorizontal: 20, paddingVertical: 10 },

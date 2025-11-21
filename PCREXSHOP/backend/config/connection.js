@@ -2,7 +2,8 @@
 import mongoose from "mongoose";
 import "dotenv/config";
 
-const URI = process.env.MONGO_URI; // Loaded from .env or Render environment variables
+const production = false;
+const URI = production ? process.env.MONGO_URI : process.env.MONGO_LOCAL_URI; // Loaded from .env or Render environment variables
 
 const connection = async () => {
   try {

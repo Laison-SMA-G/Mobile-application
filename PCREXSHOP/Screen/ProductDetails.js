@@ -1,15 +1,22 @@
 import React, { useState, useCallback } from "react";
 import {
-  View, Text, StyleSheet, Image, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, FlatList, Dimensions, Modal, Pressable
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  FlatList,
+  Dimensions,
+  Modal,
+  Pressable,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useFonts } from "expo-font";
 import { useCart } from "../context/CartContext";
-import { BASE_URL, } from "../utils/api";
-
-
-
+import { BASE_URL } from "../utils/api";
 
 const THEME = {
   primary: "#074ec2",
@@ -30,6 +37,7 @@ export const getImageSource = (uri) => {
 
 const ProductDetails = ({ route, navigation }) => {
   const { product } = route.params;
+  console.log(product);
   const { addToCart, itemCount, cartItems } = useCart();
   const [fontsLoaded] = useFonts({
     "Rubik-Regular": require("../assets/fonts/Rubik/static/Rubik-Regular.ttf"),
@@ -51,13 +59,13 @@ const ProductDetails = ({ route, navigation }) => {
   if (!fontsLoaded) return null;
 
   const increaseQuantity = () => {
-    if (quantity < actualStock) setQuantity(q => q + 1);
+    if (quantity < actualStock) setQuantity((q) => q + 1);
     else {
       setStockModalMessage(`You can only purchase up to ${actualStock} items.`);
       setStockModalVisible(true);
     }
   };
-  const decreaseQuantity = () => setQuantity(q => (q > 1 ? q - 1 : 1));
+  const decreaseQuantity = () => setQuantity((q) => (q > 1 ? q - 1 : 1));
 
   const handleAddToCart = () => {
     if (isOutOfStock) {
@@ -65,7 +73,7 @@ const ProductDetails = ({ route, navigation }) => {
       setStockModalVisible(true);
       return;
     }
-    const itemInCart = cartItems.find(item => item._id === product._id || item.id === product.id);
+    const itemInCart = cartItems.find((item) => item._id === product._id || item.id === product.id);
     const currentQuantityInCart = itemInCart ? itemInCart.quantity : 0;
 
     if (currentQuantityInCart < actualStock) {
@@ -104,7 +112,7 @@ const ProductDetails = ({ route, navigation }) => {
   }, []);
   const viewabilityConfig = { itemVisiblePercentThreshold: 50 };
 
-  const formatPrice = value => `₱${parseFloat(value).toLocaleString()}`;
+  const formatPrice = (value) => `₱${parseFloat(value).toLocaleString()}`;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -117,7 +125,11 @@ const ProductDetails = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
           <View>
             <Icon name="cart-outline" size={28} color={"#FFFFFF"} />
-            {itemCount > 0 && <View style={styles.badgeContainer}><Text style={styles.badgeText}>{itemCount}</Text></View>}
+            {itemCount > 0 && (
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{itemCount}</Text>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
       </View>
@@ -126,15 +138,20 @@ const ProductDetails = ({ route, navigation }) => {
         <View style={styles.carouselContainer}>
           <FlatList
             data={product.images.length > 0 ? product.images : [product.image]}
-            renderItem={({ item }) => <Image source={getImageSource(item)} style={styles.carouselImage} resizeMode="cover" />}
+            renderItem={({ item }) => <Image source={{ uri: item }} style={styles.carouselImage} resizeMode="cover" />}
             keyExtractor={(item, idx) => `${item}-${idx}`}
-            horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
           />
           <View style={styles.indicatorContainer}>
             {(product.images.length > 0 ? product.images : [product.image]).map((_, index) => (
-              <View key={index} style={[styles.indicatorDot, { backgroundColor: index === activeIndex ? THEME.primary : "#C4C4C4" }]} />
+              <View
+                key={index}
+                style={[styles.indicatorDot, { backgroundColor: index === activeIndex ? THEME.primary : "#C4C4C4" }]}
+              />
             ))}
           </View>
         </View>
@@ -164,7 +181,8 @@ const ProductDetails = ({ route, navigation }) => {
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={[styles.addToCartButton, isOutOfStock && styles.disabledButton]}
-          onPress={handleAddToCart} disabled={isOutOfStock}
+          onPress={handleAddToCart}
+          disabled={isOutOfStock}
         >
           <Icon name="cart-plus" size={22} color={isOutOfStock ? THEME.disabledText : THEME.primary} />
           <Text style={[styles.addToCartButtonText, isOutOfStock && styles.disabledButtonText]}>
@@ -174,7 +192,8 @@ const ProductDetails = ({ route, navigation }) => {
 
         <TouchableOpacity
           style={[styles.buyNowButton, isOutOfStock && styles.disabledButton]}
-          onPress={handleBuyNow} disabled={isOutOfStock}
+          onPress={handleBuyNow}
+          disabled={isOutOfStock}
         >
           <Text style={[styles.buyNowButtonText, isOutOfStock && styles.disabledButtonText]}>
             {isOutOfStock ? "Out of Stock" : "Buy Now"}
@@ -183,7 +202,12 @@ const ProductDetails = ({ route, navigation }) => {
       </View>
 
       {/* Quantity Modal */}
-      <Modal visible={isBuyNowModalVisible} transparent animationType="fade" onRequestClose={() => setBuyNowModalVisible(false)}>
+      <Modal
+        visible={isBuyNowModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBuyNowModalVisible(false)}
+      >
         <Pressable style={styles.modalOverlay} onPress={() => setBuyNowModalVisible(false)}>
           <Pressable style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Select Quantity</Text>
@@ -192,9 +216,13 @@ const ProductDetails = ({ route, navigation }) => {
             ) : (
               <>
                 <View style={styles.quantitySelector}>
-                  <TouchableOpacity style={styles.quantityButton} onPress={decreaseQuantity}><Icon name="minus" size={24} color={THEME.primary} /></TouchableOpacity>
+                  <TouchableOpacity style={styles.quantityButton} onPress={decreaseQuantity}>
+                    <Icon name="minus" size={24} color={THEME.primary} />
+                  </TouchableOpacity>
                   <Text style={styles.quantityText}>{quantity}</Text>
-                  <TouchableOpacity style={styles.quantityButton} onPress={increaseQuantity}><Icon name="plus" size={24} color={THEME.primary} /></TouchableOpacity>
+                  <TouchableOpacity style={styles.quantityButton} onPress={increaseQuantity}>
+                    <Icon name="plus" size={24} color={THEME.primary} />
+                  </TouchableOpacity>
                 </View>
                 <TouchableOpacity style={styles.checkoutButton} onPress={handleProceedToCheckout}>
                   <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
@@ -222,7 +250,9 @@ const ProductDetails = ({ route, navigation }) => {
       {/* Success Toast */}
       <Modal visible={isSuccessToastVisible} transparent animationType="fade">
         <View style={styles.toastOverlay}>
-          <View style={styles.toastContainer}><Text style={styles.toastText}>Added to Cart!</Text></View>
+          <View style={styles.toastContainer}>
+            <Text style={styles.toastText}>Added to Cart!</Text>
+          </View>
         </View>
       </Modal>
     </SafeAreaView>
@@ -231,14 +261,36 @@ const ProductDetails = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: THEME.background },
-  header: { flexDirection: "row", backgroundColor: THEME.primary, alignItems: "center", justifyContent: "space-between", padding: 16 },
+  header: {
+    flexDirection: "row",
+    backgroundColor: THEME.primary,
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
   headerTitle: { fontSize: 20, fontFamily: "Rubik-Medium", color: "#FFFFFF" },
-  badgeContainer: { position: "absolute", top: -4, right: -6, backgroundColor: "#EE2323", borderRadius: 9, width: 18, height: 18, justifyContent: "center", alignItems: "center" },
+  badgeContainer: {
+    position: "absolute",
+    top: -4,
+    right: -6,
+    backgroundColor: "#EE2323",
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   badgeText: { color: "#FFFFFF", fontSize: 10, fontWeight: "bold" },
   scrollContentContainer: { paddingBottom: 100 },
   carouselContainer: { height: 350, backgroundColor: "#F3F4F6" },
   carouselImage: { width: screenWidth, height: "100%" },
-  indicatorContainer: { flexDirection: "row", justifyContent: "center", position: "absolute", bottom: 15, width: "100%" },
+  indicatorContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    position: "absolute",
+    bottom: 15,
+    width: "100%",
+  },
   indicatorDot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 4 },
   detailsContainer: { paddingHorizontal: 20, paddingTop: 20 },
   productName: { fontSize: 22, fontFamily: "Rubik-Bold", color: THEME.text, marginBottom: 8 },
@@ -249,29 +301,117 @@ const styles = StyleSheet.create({
   outOfStockText: { color: THEME.primary, fontFamily: "Rubik-Bold" },
   descriptionTitle: { fontSize: 18, fontFamily: "Rubik-Medium", color: THEME.text, marginBottom: 8, marginTop: 10 },
   descriptionText: { fontSize: 15, color: "#4A4A4A", fontFamily: "Rubik-Regular", lineHeight: 23 },
-  bottomBar: { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", justifyContent: "space-between", padding: 12, paddingBottom: 20, borderTopWidth: 1, borderTopColor: "#EAEAEA", backgroundColor: "#FFFFFF" },
-  addToCartButton: { backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: THEME.primary, flexDirection: "row", justifyContent: "center", alignItems: "center", paddingVertical: 14, borderRadius: 15, flex: 1, marginRight: 8 },
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 12,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#EAEAEA",
+    backgroundColor: "#FFFFFF",
+  },
+  addToCartButton: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: THEME.primary,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderRadius: 15,
+    flex: 1,
+    marginRight: 8,
+  },
   addToCartButtonText: { color: "#000", fontSize: 16, fontFamily: "Rubik-Medium", marginLeft: 8 },
-  buyNowButton: { backgroundColor: THEME.primary, flexDirection: "row", justifyContent: "center", alignItems: "center", paddingVertical: 14, borderRadius: 15, flex: 1, marginLeft: 8 },
+  buyNowButton: {
+    backgroundColor: THEME.primary,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderRadius: 15,
+    flex: 1,
+    marginLeft: 8,
+  },
   buyNowButtonText: { color: THEME.background, fontSize: 16, fontFamily: "Rubik-Medium", marginLeft: 8 },
   disabledButton: { backgroundColor: THEME.disabled, borderColor: THEME.disabled, shadowOpacity: 0, elevation: 0 },
   disabledButtonText: { color: THEME.disabledText },
   modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" },
-  modalContainer: { width: "85%", backgroundColor: THEME.background, borderRadius: 15, padding: 20, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 },
+  modalContainer: {
+    width: "85%",
+    backgroundColor: THEME.background,
+    borderRadius: 15,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   modalTitle: { fontSize: 20, fontFamily: "Rubik-Bold", color: THEME.text, marginBottom: 20 },
   modalOutOfStockMessageText: { fontSize: 16, fontFamily: "Rubik-Medium", color: THEME.primary },
   quantitySelector: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 25 },
-  quantityButton: { width: 40, height: 40, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#EAEAEA", borderRadius: 20 },
+  quantityButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+    borderRadius: 20,
+  },
   quantityText: { fontSize: 22, fontFamily: "Rubik-Bold", color: THEME.text, marginHorizontal: 25 },
-  checkoutButton: { backgroundColor: THEME.primary, width: "100%", paddingVertical: 14, borderRadius: 15, alignItems: "center" },
+  checkoutButton: {
+    backgroundColor: THEME.primary,
+    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 15,
+    alignItems: "center",
+  },
   checkoutButtonText: { color: THEME.background, fontSize: 16, fontFamily: "Rubik-SemiBold" },
-  alertModalContainer: { width: "80%", backgroundColor: THEME.background, borderRadius: 15, paddingVertical: 25, paddingHorizontal: 20, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 5 },
+  alertModalContainer: {
+    width: "80%",
+    backgroundColor: THEME.background,
+    borderRadius: 15,
+    paddingVertical: 25,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   alertModalTitle: { fontSize: 18, fontFamily: "Rubik-Bold", color: THEME.text, marginBottom: 8 },
-  alertModalMessage: { fontSize: 15, fontFamily: "Rubik-Regular", color: "#4A4A4A", textAlign: "center", marginBottom: 25, lineHeight: 22 },
-  alertModalButton: { backgroundColor: THEME.primary, borderRadius: 10, paddingVertical: 12, width: "100%", alignItems: "center" },
+  alertModalMessage: {
+    fontSize: 15,
+    fontFamily: "Rubik-Regular",
+    color: "#4A4A4A",
+    textAlign: "center",
+    marginBottom: 25,
+    lineHeight: 22,
+  },
+  alertModalButton: {
+    backgroundColor: THEME.primary,
+    borderRadius: 10,
+    paddingVertical: 12,
+    width: "100%",
+    alignItems: "center",
+  },
   alertModalButtonText: { color: THEME.background, fontSize: 16, fontFamily: "Rubik-SemiBold" },
   toastOverlay: { flex: 1, justifyContent: "center", alignItems: "center" },
-  toastContainer: { backgroundColor: "#4BB543", borderRadius: 10, paddingVertical: 15, paddingHorizontal: 25, alignItems: "center" },
+  toastContainer: {
+    backgroundColor: "#4BB543",
+    borderRadius: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    alignItems: "center",
+  },
   toastText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Rubik-Medium", textAlign: "center" },
 });
 
