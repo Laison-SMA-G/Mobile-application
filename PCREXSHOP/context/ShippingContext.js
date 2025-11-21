@@ -1,111 +1,177 @@
 // context/ShippingContext.js
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useUser } from "../context/UserContext"; // <-- Using your existing UserContext!
+import axios from "axios";
 
 const ShippingContext = createContext();
-
 export const useShipping = () => useContext(ShippingContext);
 
 export const ShippingProvider = ({ children }) => {
-    // Initial dummy addresses
-    const [addresses, setAddresses] = useState([
-        { id: '1', name: 'Home', addressLine1: '123 Main St, Apt 4B', city: 'Anytown', postalCode: '12345', country: 'USA', isDefault: true, fullName: 'Juan Dela Cruz', phoneNumber: '09123456789' },
-        { id: '2', name: 'Work', addressLine1: '456 Office Rd, Suite 100', city: 'Otherville', postalCode: '67890', country: 'USA', isDefault: false, fullName: 'Maria Clara', phoneNumber: '09987654321' },
-    ]);
+    const { user } = useUser(); // <-- This is your logged-in user
+    const userId = user?._id;
+
+    const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
 
-    const [shippingProviders, setShippingProviders] = useState([
-        { id: 'standard', name: 'Standard Delivery', fee: 50.0, estimatedDays: '3-5 days' },
-        { id: 'pickup', name: 'Store Pickup', fee: 0.0, estimatedDays: 'Same day' },
+    const [shippingProviders] = useState([
+        { id: "standard", name: "Standard Delivery", fee: 50, estimatedDays: "3–5 days" },
+        { id: "pickup", name: "Store Pickup", fee: 0, estimatedDays: "Same day" },
     ]);
     const [selectedShippingProvider, setSelectedShippingProvider] = useState(null);
 
-    // Set initial default address on load
+    // --------------------------------------------------------------------
+    // FETCH ADDRESSES ON LOGIN
+    // --------------------------------------------------------------------
     useEffect(() => {
-        const defaultAddr = addresses.find(addr => addr.isDefault);
-        if (defaultAddr) {
-            setSelectedAddress(defaultAddr);
-        } else if (addresses.length > 0) {
-            setSelectedAddress(addresses[0]); // Fallback to first address if no default
-            setAddresses(prev => prev.map((addr, index) => index === 0 ? { ...addr, isDefault: true } : addr));
-        }
-        setSelectedShippingProvider(shippingProviders[0]); // Set default shipping provider
-    }, [addresses.length]); // Depend on addresses.length to re-run if addresses are added/removed
+        if (!userId) return;
 
-    const addAddress = (newAddress) => {
-        const id = (Math.random().toString(36).substring(2, 9));
-        const addressToAdd = { ...newAddress, id };
+        const loadAddresses = async () => {
+            try {
+                const res = await axios.get(`/users/${userId}/addresses`);
+                const list = res.data || [];
 
-        let updatedAddresses;
-        if (addressToAdd.isDefault) {
-            updatedAddresses = addresses.map(addr => ({ ...addr, isDefault: false }));
-            updatedAddresses.push(addressToAdd);
-        } else {
-            updatedAddresses = [...addresses, addressToAdd];
-        }
-        setAddresses(updatedAddresses);
-        if (addressToAdd.isDefault || addresses.length === 0) {
-            setSelectedAddress(addressToAdd);
-        }
-    };
+                setAddresses(list);
 
-    const updateAddress = (updatedAddress) => {
-        const updatedAddresses = addresses.map(addr => {
-            if (addr.id === updatedAddress.id) {
-                return updatedAddress;
-            } else if (updatedAddress.isDefault) {
-                return { ...addr, isDefault: false }; // Unset default for others if this one is default
+                // Auto-select default
+                const defaultAddress = list.find(a => a.isDefault);
+                setSelectedAddress(defaultAddress || list[0] || null);
+
+                if (!selectedShippingProvider)
+                    setSelectedShippingProvider(shippingProviders[0]);
+
+            } catch (err) {
+                console.error("Failed to load user addresses:", err.response?.data || err);
             }
-            return addr;
-        });
-        setAddresses(updatedAddresses);
-        if (selectedAddress && selectedAddress.id === updatedAddress.id) {
-            setSelectedAddress(updatedAddress);
-        } else if (updatedAddress.isDefault) {
-            setSelectedAddress(updatedAddress);
+        };
+
+        loadAddresses();
+    }, [userId]);
+
+    // --------------------------------------------------------------------
+    // ADD ADDRESS
+    // --------------------------------------------------------------------
+    const addAddress = async (newAddress) => {
+        if (!userId) return;
+
+        try {
+            const res = await axios.post(`/users/${userId}/addresses`, newAddress);
+            const saved = res.data;
+
+            let updated = addresses;
+
+            if (saved.isDefault) {
+                updated = addresses.map(a => ({ ...a, isDefault: false }));
+                updated = [saved, ...updated];
+            } else {
+                updated = [...addresses, saved];
+            }
+
+            setAddresses(updated);
+
+            if (saved.isDefault || addresses.length === 0)
+                setSelectedAddress(saved);
+
+        } catch (err) {
+            console.error("Add address failed:", err.response?.data || err);
         }
     };
 
-    const deleteAddress = (id) => {
-        const newAddresses = addresses.filter(addr => addr.id !== id);
-        setAddresses(newAddresses);
-        if (selectedAddress && selectedAddress.id === id) {
-            setSelectedAddress(null); // Clear selected if deleted
-        }
-        // If the default address was deleted, set a new default or clear
-        if (newAddresses.length > 0 && !newAddresses.some(addr => addr.isDefault)) {
-            const firstAddress = { ...newAddresses[0], isDefault: true };
-            newAddresses[0] = firstAddress;
-            setSelectedAddress(firstAddress);
-        } else if (newAddresses.length === 0) {
-            setSelectedAddress(null);
+    // --------------------------------------------------------------------
+    // UPDATE ADDRESS
+    // --------------------------------------------------------------------
+    const updateAddress = async (updatedAddress) => {
+        if (!userId) return;
+
+        try {
+            const res = await axios.put(
+                `/users/${userId}/addresses/${updatedAddress._id}`,
+                updatedAddress
+            );
+
+            const saved = res.data;
+
+            const updated = addresses.map(a =>
+                a._id === saved._id
+                    ? saved
+                    : saved.isDefault
+                    ? { ...a, isDefault: false }
+                    : a
+            );
+
+            setAddresses(updated);
+
+            if (saved.isDefault || selectedAddress?._id === saved._id)
+                setSelectedAddress(saved);
+
+        } catch (err) {
+            console.error("Update address failed:", err.response?.data || err);
         }
     };
 
-    const setDefaultAddress = (id) => {
-        const updatedAddresses = addresses.map(addr => ({
-            ...addr,
-            isDefault: addr.id === id,
-        }));
-        setAddresses(updatedAddresses);
-        setSelectedAddress(updatedAddresses.find(addr => addr.id === id));
+    // --------------------------------------------------------------------
+    // DELETE ADDRESS
+    // --------------------------------------------------------------------
+    const deleteAddress = async (id) => {
+        if (!userId) return;
+
+        try {
+            await axios.delete(`/users/${userId}/addresses/${id}`);
+
+            const filtered = addresses.filter(a => a._id !== id);
+            setAddresses(filtered);
+
+            if (selectedAddress?._id === id) {
+                setSelectedAddress(filtered[0] || null);
+            }
+
+            // Assign default if none left
+            if (filtered.length > 0 && !filtered.some(a => a.isDefault)) {
+                filtered[0].isDefault = true;
+                setSelectedAddress(filtered[0]);
+            }
+
+        } catch (err) {
+            console.error("Delete address failed:", err.response?.data || err);
+        }
     };
 
-    const value = {
-        addresses,
-        addAddress,
-        updateAddress,
-        deleteAddress,
-        setDefaultAddress,
-        selectedAddress,
-        setSelectedAddress,
-        shippingProviders,
-        selectedShippingProvider,
-        setSelectedShippingProvider,
+    // --------------------------------------------------------------------
+    // SET AS DEFAULT ADDRESS
+    // --------------------------------------------------------------------
+    const setDefaultAddress = async (id) => {
+        if (!userId) return;
+
+        try {
+            await axios.patch(`/users/${userId}/addresses/default/${id}`);
+
+            const updated = addresses.map(a => ({
+                ...a,
+                isDefault: a._id === id
+            }));
+
+            setAddresses(updated);
+            setSelectedAddress(updated.find(a => a._id === id));
+
+        } catch (err) {
+            console.error("Set default address failed:", err.response?.data || err);
+        }
     };
 
     return (
-        <ShippingContext.Provider value={value}>
+        <ShippingContext.Provider
+            value={{
+                addresses,
+                selectedAddress,
+                addAddress,
+                updateAddress,
+                deleteAddress,
+                setDefaultAddress,
+                setSelectedAddress,
+                shippingProviders,
+                selectedShippingProvider,
+                setSelectedShippingProvider,
+            }}
+        >
             {children}
         </ShippingContext.Provider>
     );

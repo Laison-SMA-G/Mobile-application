@@ -3,7 +3,7 @@ import axios from 'axios';
 import Constants from 'expo-constants';
 
 const LOCAL_IP = '192.168.100.45:5000'; // replace with your dev machine IP
-const PROD_URL = "https://mobile-application-2.onrender.com/api";
+const PROD_URL = "https://mobile-application-2.onrender.com/api/products";
 
 const isDevelopment = Constants.manifest?.packagerOpts !== undefined;
 
