@@ -5,9 +5,7 @@ import axios from "axios";
 
 const isProd = true; // flip the boolean value to switch between local and deployed backend
 
-export const BASE_URL = isProd
-  ? "https://Mobile-application-2.onrender.com/api"
-  : "http://192.168.0.102:5000/api";
+export const BASE_URL = isProd ? "https://Mobile-application-2.onrender.com/api" : "";
 axios.defaults.baseURL = BASE_URL;
 
 const UserContext = createContext(null);
