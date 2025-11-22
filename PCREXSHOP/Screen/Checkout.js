@@ -158,9 +158,9 @@ const Checkout = ({ route, navigation }) => {
             <View style={styles.addressDisplay}>
               <View style={styles.addressNameContainer}>
                 <Text style={[styles.addressNameLabel, { fontFamily: 'Rubik-SemiBold' }]}>
-                  Address Name: {selectedAddress.name}
+                  Address Name: {selectedAddress?.name}
                 </Text>
-                {selectedAddress.isDefault && (
+                {selectedAddress?.isDefault && (
                   <View style={styles.defaultBadge}>
                     <Text style={[styles.defaultBadgeText, { fontFamily: 'Rubik-Medium' }]}>
                       DEFAULT
@@ -170,24 +170,24 @@ const Checkout = ({ route, navigation }) => {
               </View>
 
               <Text style={[styles.addressInfoText, { fontFamily: 'Rubik-Medium' }]}>
-                <Text style={styles.addressLabel}>Full Name:</Text> {selectedAddress.fullName}
+                <Text style={styles.addressLabel}>Full Name:</Text> {selectedAddress?.fullName}
               </Text>
 
               <Text style={[styles.addressInfoText, { fontFamily: 'Rubik-Medium' }]}>
-                <Text style={styles.addressLabel}>Phone:</Text> {selectedAddress.phoneNumber}
+                <Text style={styles.addressLabel}>Phone:</Text> {selectedAddress?.phoneNumber}
               </Text>
 
               <Text style={[styles.addressInfoText, { fontFamily: 'Rubik-Medium' }]}>
-                <Text style={styles.addressLabel}>Address:</Text> {selectedAddress.addressLine1}
+                <Text style={styles.addressLabel}>Address:</Text> {selectedAddress?.addressLine1}
               </Text>
 
               <Text style={[styles.addressInfoText, { fontFamily: 'Rubik-Medium' }]}>
-                <Text style={styles.addressLabel}>City:</Text> {selectedAddress.city},{' '}
-                {selectedAddress.postalCode}
+                <Text style={styles.addressLabel}>City:</Text> {selectedAddress?.city},{' '}
+                {selectedAddress?.postalCode}
               </Text>
 
               <Text style={[styles.addressInfoText, { fontFamily: 'Rubik-Medium' }]}>
-                <Text style={styles.addressLabel}>Country:</Text> {selectedAddress.country}
+                <Text style={styles.addressLabel}>Country:</Text> {selectedAddress?.country}
               </Text>
             </View>
           ) : (
