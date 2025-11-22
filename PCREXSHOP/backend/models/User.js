@@ -11,8 +11,8 @@ const addressSchema = new mongoose.Schema({
   barangay: { type: String, required: true },
   street: { type: String, required: true },
   postalCode: { type: String, required: true },
-  isDefault: { type: Boolean, default: false }
-});
+  isDefault: { type: Boolean, default: false },
+}, { _id: true });
 
 // Main User schema
 const userSchema = new mongoose.Schema({
@@ -34,10 +34,38 @@ const userSchema = new mongoose.Schema({
     }
   ],
 
-  // ⭐ Addresses
-  addresses: [addressSchema]
+  // Addresses
+  addresses: [addressSchema],
 }, { timestamps: true });
 
-// Export model (prevent recompilation error)
+// ------------------------------
+// Pre-save hook to enforce one default
+// ------------------------------
+userSchema.pre("save", function(next) {
+  const addresses = this.addresses || [];
+
+  if (addresses.length === 0) return next();
+
+  // If none marked as default, mark the first one
+  if (!addresses.some(a => a.isDefault)) {
+    addresses[0].isDefault = true;
+  }
+
+  // Ensure only one default
+  let defaultSet = false;
+  addresses.forEach(a => {
+    if (a.isDefault) {
+      if (!defaultSet) {
+        defaultSet = true;
+      } else {
+        a.isDefault = false;
+      }
+    }
+  });
+
+  next();
+});
+
+// Prevent recompilation errors in development
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 export default User;

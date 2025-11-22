@@ -25,28 +25,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ---------------------
-// FIXED: CORS for mobile + desktop
+// CORS
 // ---------------------
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 // ---------------------
-// Parse JSON requests
+// Parse JSON
 // ---------------------
 app.use(express.json());
 
 // ---------------------
-// Serve uploads folder publicly (optional fallback)
+// Serve uploads folder publicly
 // ---------------------
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ---------------------
-// Serve product images through API
+// Serve product images
 // ---------------------
 app.get("/api/products/:filename", (req, res) => {
   const filename = req.params.filename;
@@ -64,12 +64,12 @@ app.get("/api/products/:filename", (req, res) => {
 // API Routes
 // ---------------------
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);                     // User routes
+app.use("/api/users/:userId/addresses", addressRoutes); // Address routes
 app.use("/api/orders", orderRoutes);
-app.use("/api/products", productRoutes); // centralized products API
+app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/chats", chatRoutes);
-app.use("/api/users/:userId/addresses", addressRoutes);
 
 // ---------------------
 // MongoDB Connection
@@ -83,7 +83,7 @@ mongoose
   .catch((err) => console.error("❌ MongoDB connection error:", err.message));
 
 // ---------------------
-// Start server on Render
+// Start server
 // ---------------------
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port http://localhost:${PORT}`);

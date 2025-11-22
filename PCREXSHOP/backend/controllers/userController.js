@@ -84,3 +84,87 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: "Failed to update profile", error: error.message });
   }
 };
+
+
+// ✅ Add new address
+export const addAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const newAddress = { ...req.body, _id: new mongoose.Types.ObjectId() };
+
+    // If the new address is default, unset all others
+    if (newAddress.isDefault) {
+      user.address.forEach(addr => (addr.isDefault = false));
+    }
+
+    user.address.push(newAddress);
+    await user.save();
+
+    res.status(201).json(newAddress);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to add address", error: err.message });
+  }
+};
+
+// ✅ Update existing address
+export const updateAddress = async (req, res) => {
+  try {
+    const { addressId } = req.params;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const index = user.address.findIndex(a => a._id.toString() === addressId);
+    if (index === -1) return res.status(404).json({ message: "Address not found" });
+
+    // If updating to default, unset all others
+    if (req.body.isDefault) {
+      user.address.forEach(addr => (addr.isDefault = false));
+    }
+
+    user.address[index] = { ...user.address[index]._doc, ...req.body };
+    await user.save();
+
+    res.status(200).json(user.address[index]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update address", error: err.message });
+  }
+};
+
+// ✅ Delete address
+export const deleteAddress = async (req, res) => {
+  try {
+    const { addressId } = req.params;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.address = user.address.filter(addr => addr._id.toString() !== addressId);
+    await user.save();
+
+    res.status(200).json({ message: "Address deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete address", error: err.message });
+  }
+};
+
+// ✅ Set default address
+export const setDefaultAddress = async (req, res) => {
+  try {
+    const { addressId } = req.params;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.address.forEach(addr => (addr.isDefault = addr._id.toString() === addressId));
+    await user.save();
+
+    const defaultAddress = user.address.find(addr => addr.isDefault);
+    res.status(200).json(defaultAddress);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to set default address", error: err.message });
+  }
+};

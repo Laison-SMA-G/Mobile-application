@@ -3,11 +3,14 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from "
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-const isProd = true; // flip the boolean value to switch between local and deployed backend
+ // flip the boolean value to switch between local and deployed backend
 
-export const BASE_URL = isProd ? "https://Mobile-application-2.onrender.com/api" : "";
+const isProd = true;
+export const BASE_URL = isProd
+  ? "https://mobile-application-2.onrender.com/api"
+  : "http://localhost:5000/api";
+
 axios.defaults.baseURL = BASE_URL;
-
 const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
@@ -15,6 +18,22 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+
+
+  useEffect(() => {
+    const requestInterceptor = axios.interceptors.request.use(
+      async (config) => {
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    return () => axios.interceptors.request.eject(requestInterceptor);
+  }, [token]);
+
 
   // Restore session
   useEffect(() => {
@@ -138,6 +157,7 @@ export const UserProvider = ({ children }) => {
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+  
 };
 
 export const useUser = () => {

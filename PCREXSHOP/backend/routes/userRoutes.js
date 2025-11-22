@@ -6,7 +6,8 @@ import nodemailer from "nodemailer";
 import User from "../models/User.js";
 import Order from "../models/Order.js"; // ✅ to fetch customer orders
 import auth from "../middlewares/auth.js";
-import { updateUserProfile, upload } from "../controllers/userController.js";
+
+
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key";
@@ -215,7 +216,5 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ Update user profile (supports Base64 or multipart upload)
-router.put("/profile", upload.single("profileImage"), updateUserProfile);
 
 export default router;

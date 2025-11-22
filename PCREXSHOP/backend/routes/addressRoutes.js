@@ -8,16 +8,21 @@ import {
   setDefaultAddress
 } from "../controllers/addressController.js";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-// protect all routes
-router.use(auth);
+// GET addresses
+router.get("/", auth, getUserAddresses);
 
-router.get("/users/:userId/addresses", getUserAddresses);
-router.post("/users/:userId/addresses", addAddress);
-router.put("/users/:userId/addresses/:addressId", updateAddress);
-router.delete("/users/:userId/addresses/:addressId", deleteAddress);
-router.patch("/users/:userId/addresses/default/:addressId", setDefaultAddress);
+// Add address
+router.post("/add", auth, addAddress);
+
+// Update address
+router.put("/:addressId", auth, updateAddress);
+
+// Delete address
+router.delete("/:addressId", auth, deleteAddress);
+
+// Set default address
+router.put("/:addressId/default", auth, setDefaultAddress);
 
 export default router;
-

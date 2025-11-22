@@ -1,178 +1,201 @@
 // context/ShippingContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useUser } from "../context/UserContext"; // <-- Using your existing UserContext!
-import axios from "axios";
+import { Alert } from "react-native";
+import { useUser } from "./UserContext";
+
+// ==============================
+// MOCK DATA (acts as backend)
+// ==============================
+let MOCK_ADDRESSES = [
+  {
+    _id: "addr1",
+    name: "Home",
+    fullName: "Sean Michael Laison",
+    phoneNumber: "+639123456789",
+    addressLine1: "123 Main Street",
+    city: "Manila",
+    postalCode: "1000",
+    country: "Philippines",
+    isDefault: true,
+  },
+  {
+    _id: "addr2",
+    name: "Office",
+    fullName: "Sean Michael Laison",
+    phoneNumber: "+639987654321",
+    addressLine1: "456 Office Rd",
+    city: "Quezon City",
+    postalCode: "1100",
+    country: "Philippines",
+    isDefault: false,
+  },
+];
 
 const ShippingContext = createContext();
 export const useShipping = () => useContext(ShippingContext);
 
 export const ShippingProvider = ({ children }) => {
-    const { user } = useUser(); // <-- This is your logged-in user
-    const userId = user?._id;
+  const { user } = useUser();
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-    const [addresses, setAddresses] = useState([]);
-    const [selectedAddress, setSelectedAddress] = useState(null);
+  // ==============================
+  // FETCH ADDRESSES
+  // ==============================
+  const fetchAddresses = async () => {
+    setLoading(true);
+    try {
+      if (!user?._id) {
+        setAddresses([]);
+        setSelectedAddress(null);
+        return;
+      }
 
-    const [shippingProviders] = useState([
-        { id: "standard", name: "Standard Delivery", fee: 50, estimatedDays: "3–5 days" },
-        { id: "pickup", name: "Store Pickup", fee: 0, estimatedDays: "Same day" },
-    ]);
-    const [selectedShippingProvider, setSelectedShippingProvider] = useState(null);
+      // simulate network delay
+      await new Promise((res) => setTimeout(res, 500));
 
-    // --------------------------------------------------------------------
-    // FETCH ADDRESSES ON LOGIN
-    // --------------------------------------------------------------------
-    useEffect(() => {
-        if (!userId) return;
+      const userAddresses = MOCK_ADDRESSES;
+      setAddresses(userAddresses);
 
-        const loadAddresses = async () => {
-            try {
-                const res = await axios.get(`/users/${userId}/addresses`);
-                const list = res.data || [];
+      const defaultAddr = userAddresses.find((a) => a.isDefault);
+      setSelectedAddress(defaultAddr || userAddresses[0] || null);
+    } catch (err) {
+      Alert.alert("Error", "Failed to fetch addresses (mock).");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                setAddresses(list);
+  // ==============================
+  // ADD ADDRESS
+  // ==============================
+  const addAddress = async (addressData) => {
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 500));
 
-                // Auto-select default
-                const defaultAddress = list.find(a => a.isDefault);
-                setSelectedAddress(defaultAddress || list[0] || null);
+      const newAddress = { ...addressData, _id: `addr${Date.now()}` };
+      if (addressData.isDefault) {
+        MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) => ({ ...a, isDefault: false }));
+      }
+      MOCK_ADDRESSES.push(newAddress);
 
-                if (!selectedShippingProvider)
-                    setSelectedShippingProvider(shippingProviders[0]);
+      setAddresses([...MOCK_ADDRESSES]);
+      if (addressData.isDefault || MOCK_ADDRESSES.length === 1) setSelectedAddress(newAddress);
 
-            } catch (err) {
-                console.error("Failed to load user addresses:", err.response?.data || err);
-            }
-        };
+      Alert.alert("Success", "Address added successfully!");
+      return true;
+    } catch (err) {
+      Alert.alert("Error", "Failed to add address (mock).");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        loadAddresses();
-    }, [userId]);
+  // ==============================
+  // UPDATE ADDRESS
+  // ==============================
+  const updateAddress = async (addressData) => {
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 500));
 
-    // --------------------------------------------------------------------
-    // ADD ADDRESS
-    // --------------------------------------------------------------------
-    const addAddress = async (newAddress) => {
-        if (!userId) return;
+      MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) =>
+        a._id === addressData._id ? { ...addressData } : a
+      );
 
-        try {
-            const res = await axios.post(`/users/${userId}/addresses`, newAddress);
-            const saved = res.data;
+      if (addressData.isDefault) {
+        MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) =>
+          a._id !== addressData._id ? { ...a, isDefault: false } : a
+        );
+        setSelectedAddress(addressData);
+      }
 
-            let updated = addresses;
+      setAddresses([...MOCK_ADDRESSES]);
+      Alert.alert("Success", "Address updated successfully!");
+      return true;
+    } catch (err) {
+      Alert.alert("Error", "Failed to update address (mock).");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            if (saved.isDefault) {
-                updated = addresses.map(a => ({ ...a, isDefault: false }));
-                updated = [saved, ...updated];
-            } else {
-                updated = [...addresses, saved];
-            }
+  // ==============================
+  // DELETE ADDRESS
+  // ==============================
+  const deleteAddress = async (addressId) => {
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 500));
 
-            setAddresses(updated);
+      MOCK_ADDRESSES = MOCK_ADDRESSES.filter((a) => a._id !== addressId);
+      setAddresses([...MOCK_ADDRESSES]);
 
-            if (saved.isDefault || addresses.length === 0)
-                setSelectedAddress(saved);
+      if (selectedAddress?._id === addressId) {
+        const defaultAddr = MOCK_ADDRESSES.find((a) => a.isDefault);
+        setSelectedAddress(defaultAddr || MOCK_ADDRESSES[0] || null);
+      }
 
-        } catch (err) {
-            console.error("Add address failed:", err.response?.data || err);
-        }
-    };
+      Alert.alert("Success", "Address deleted successfully!");
+      return true;
+    } catch (err) {
+      Alert.alert("Error", "Failed to delete address (mock).");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // --------------------------------------------------------------------
-    // UPDATE ADDRESS
-    // --------------------------------------------------------------------
-    const updateAddress = async (updatedAddress) => {
-        if (!userId) return;
+  // ==============================
+  // SET DEFAULT ADDRESS
+  // ==============================
+  const setDefaultAddress = async (addressId) => {
+    setLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 500));
 
-        try {
-            const res = await axios.put(
-                `/users/${userId}/addresses/${updatedAddress._id}`,
-                updatedAddress
-            );
+      MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) => ({
+        ...a,
+        isDefault: a._id === addressId,
+      }));
 
-            const saved = res.data;
+      const newDefault = MOCK_ADDRESSES.find((a) => a._id === addressId);
+      setSelectedAddress(newDefault);
+      setAddresses([...MOCK_ADDRESSES]);
 
-            const updated = addresses.map(a =>
-                a._id === saved._id
-                    ? saved
-                    : saved.isDefault
-                    ? { ...a, isDefault: false }
-                    : a
-            );
+      Alert.alert("Success", "Default address set!");
+      return true;
+    } catch (err) {
+      Alert.alert("Error", "Failed to set default address (mock).");
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            setAddresses(updated);
+  useEffect(() => {
+    if (user?._id) fetchAddresses();
+  }, [user?._id]);
 
-            if (saved.isDefault || selectedAddress?._id === saved._id)
-                setSelectedAddress(saved);
-
-        } catch (err) {
-            console.error("Update address failed:", err.response?.data || err);
-        }
-    };
-
-    // --------------------------------------------------------------------
-    // DELETE ADDRESS
-    // --------------------------------------------------------------------
-    const deleteAddress = async (id) => {
-        if (!userId) return;
-
-        try {
-            await axios.delete(`/users/${userId}/addresses/${id}`);
-
-            const filtered = addresses.filter(a => a._id !== id);
-            setAddresses(filtered);
-
-            if (selectedAddress?._id === id) {
-                setSelectedAddress(filtered[0] || null);
-            }
-
-            // Assign default if none left
-            if (filtered.length > 0 && !filtered.some(a => a.isDefault)) {
-                filtered[0].isDefault = true;
-                setSelectedAddress(filtered[0]);
-            }
-
-        } catch (err) {
-            console.error("Delete address failed:", err.response?.data || err);
-        }
-    };
-
-    // --------------------------------------------------------------------
-    // SET AS DEFAULT ADDRESS
-    // --------------------------------------------------------------------
-    const setDefaultAddress = async (id) => {
-        if (!userId) return;
-
-        try {
-            await axios.patch(`/users/${userId}/addresses/default/${id}`);
-
-            const updated = addresses.map(a => ({
-                ...a,
-                isDefault: a._id === id
-            }));
-
-            setAddresses(updated);
-            setSelectedAddress(updated.find(a => a._id === id));
-
-        } catch (err) {
-            console.error("Set default address failed:", err.response?.data || err);
-        }
-    };
-
-    return (
-        <ShippingContext.Provider
-            value={{
-                addresses,
-                selectedAddress,
-                addAddress,
-                updateAddress,
-                deleteAddress,
-                setDefaultAddress,
-                setSelectedAddress,
-                shippingProviders,
-                selectedShippingProvider,
-                setSelectedShippingProvider,
-            }}
-        >
-            {children}
-        </ShippingContext.Provider>
-    );
+  return (
+    <ShippingContext.Provider
+      value={{
+        addresses,
+        selectedAddress,
+        setSelectedAddress,
+        fetchAddresses,
+        addAddress,
+        updateAddress,
+        deleteAddress,
+        setDefaultAddress,
+        loading,
+      }}
+    >
+      {children}
+    </ShippingContext.Provider>
+  );
 };

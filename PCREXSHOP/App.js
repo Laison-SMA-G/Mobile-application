@@ -9,6 +9,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import 'react-native-gesture-handler';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+
 // Contexts
 import { CartProvider } from './context/CartContext';
 import { OrderProvider } from './context/OrderContext';
@@ -43,6 +44,21 @@ import ToReview from "./Screen/ToReview";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 SplashScreen.preventAutoHideAsync();
+
+
+const ShippingSetup = ({ children }) => {
+  const { user, token } = useUser();
+
+  return (
+   <AuthProvider>
+  <ShippingProvider userId={user?._id} token={token}>
+    <AppNavigation />
+  </ShippingProvider>
+</AuthProvider>
+
+  );
+};
+
 
 // ✅ Bottom Tab Navigator
 const TabNavigator = () => (
