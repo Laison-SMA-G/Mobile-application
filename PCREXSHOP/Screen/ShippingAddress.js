@@ -17,8 +17,11 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useFonts } from "expo-font";
 import Checkbox from "expo-checkbox";
 import { useShipping } from "../context/ShippingContext";
+import { useUser } from "../context/UserContext";
 
 const ShippingAddress = ({ navigation }) => {
+  const { user } = useUser();
+
   const [fontsLoaded] = useFonts({
     "Rubik-Regular": require("../assets/fonts/Rubik/static/Rubik-Regular.ttf"),
     "Rubik-Bold": require("../assets/fonts/Rubik/static/Rubik-Bold.ttf"),
@@ -53,8 +56,10 @@ const ShippingAddress = ({ navigation }) => {
 
   // Load addresses on mount
   useEffect(() => {
-    fetchAddresses();
-  }, []);
+    if (user._id) {
+      fetchAddresses();
+    }
+  }, [user._id]);
 
   const openAddModal = () => {
     setEditingAddress(null);
@@ -89,7 +94,6 @@ const ShippingAddress = ({ navigation }) => {
         Alert.alert("Success", "Address updated!");
       } else {
         await addAddress(form);
-        Alert.alert("Success", "Address added!");
       }
       setModalVisible(false);
     } catch (err) {
@@ -99,14 +103,10 @@ const ShippingAddress = ({ navigation }) => {
   };
 
   const handleDelete = (id) => {
-    Alert.alert(
-      "Delete Address",
-      "Are you sure you want to delete this address?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => deleteAddress(id) },
-      ]
-    );
+    Alert.alert("Delete Address", "Are you sure you want to delete this address?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: () => deleteAddress(id) },
+    ]);
   };
 
   const handleSetDefault = async (id) => {
@@ -194,12 +194,7 @@ const ShippingAddress = ({ navigation }) => {
       </View>
 
       {/* Modal */}
-      <Modal
-        visible={isModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
           <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>{editingAddress ? "Edit Address" : "Add New Address"}</Text>
@@ -225,7 +220,10 @@ const ShippingAddress = ({ navigation }) => {
             </View>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.modalButton, styles.secondaryButton]} onPress={() => setModalVisible(false)}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.secondaryButton]}
+                onPress={() => setModalVisible(false)}
+              >
                 <Text style={styles.secondaryText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalButton, styles.primaryButton]} onPress={handleSave}>
@@ -242,7 +240,13 @@ const ShippingAddress = ({ navigation }) => {
 // Styles (reuse your previous ShippingAddress styles)
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 15, backgroundColor: "#074ec2" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 15,
+    backgroundColor: "#074ec2",
+  },
   backButton: { padding: 5 },
   headerTitle: { fontSize: 20, fontFamily: "Rubik-Medium", color: "#FFFFFF" },
   placeholderRight: { width: 38 },
@@ -250,7 +254,14 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: "center", marginTop: 60 },
   noAddressText: { fontSize: 17, fontFamily: "Rubik-Medium", color: "#666", marginTop: 20 },
   noAddressSubText: { fontSize: 13, fontFamily: "Rubik-Regular", color: "#999", marginTop: 5 },
-  addressCard: { backgroundColor: "#fff", borderRadius: 15, padding: 18, marginBottom: 15, borderWidth: 1, borderColor: "#EAEAEA" },
+  addressCard: {
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 18,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#EAEAEA",
+  },
   selectedAddressCard: { borderColor: "#074ec2", backgroundColor: "#E6F0FA" },
   addressHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   addressName: { fontSize: 18, fontFamily: "Rubik-SemiBold" },
@@ -262,12 +273,26 @@ const styles = StyleSheet.create({
   actionButton: { flexDirection: "row", alignItems: "center", marginRight: 20, marginBottom: 8 },
   actionButtonText: { fontSize: 13, fontFamily: "Rubik-Medium", marginLeft: 6 },
   bottomContainer: { paddingHorizontal: 20, paddingBottom: 20, paddingTop: 10 },
-  addButton: { backgroundColor: "#074ec2", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 15, borderRadius: 12 },
+  addButton: {
+    backgroundColor: "#074ec2",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 15,
+    borderRadius: 12,
+  },
   addButtonText: { color: "#fff", fontSize: 17, fontFamily: "Rubik-SemiBold", marginLeft: 10 },
   modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
   modalContainer: { width: "88%", backgroundColor: "#fff", borderRadius: 18, padding: 25 },
   modalTitle: { fontSize: 22, fontFamily: "Rubik-Bold", marginBottom: 20, textAlign: "center" },
-  modalInput: { borderWidth: 1, borderColor: "#DDD", borderRadius: 10, padding: 13, marginBottom: 12, fontFamily: "Rubik-Regular" },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 10,
+    padding: 13,
+    marginBottom: 12,
+    fontFamily: "Rubik-Regular",
+  },
   checkboxContainer: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
   checkboxLabel: { marginLeft: 10, fontSize: 14 },
   modalActions: { flexDirection: "row", justifyContent: "space-between" },

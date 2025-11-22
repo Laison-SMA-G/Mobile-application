@@ -65,7 +65,7 @@ app.get("/api/products/:filename", (req, res) => {
 // ---------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);                     // User routes
-app.use("/api/users/:userId/addresses", addressRoutes); // Address routes
+app.use("/api/address", addressRoutes); // Address routes
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);

@@ -6,20 +6,20 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import 'react-native-gesture-handler';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-
+import "react-native-gesture-handler";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Contexts
-import { CartProvider } from './context/CartContext';
-import { OrderProvider } from './context/OrderContext';
-import { UserProvider } from './context/UserContext';
-import { ShippingProvider } from './context/ShippingContext';
+import { CartProvider } from "./context/CartContext";
+import { OrderProvider } from "./context/OrderContext";
+import { UserProvider } from "./context/UserContext";
+import { ShippingProvider } from "./context/ShippingContext";
+import { useUser } from "./context/UserContext";
 
 // Screens
-import MessagesScreen from './Screen/MessagesScreen';
-import ChatScreen from './Screen/ChatScreen';
-import HomeScreen from './Screen/HomeScreen';
+import MessagesScreen from "./Screen/MessagesScreen";
+import ChatScreen from "./Screen/ChatScreen";
+import HomeScreen from "./Screen/HomeScreen";
 import Cart from "./Screen/Cart";
 import CategoryProducts from "./Screen/CategoryProducts";
 import ProductDetails from "./Screen/ProductDetails";
@@ -40,55 +40,51 @@ import ToShip from "./Screen/ToShip";
 import ToReceive from "./Screen/ToReceive";
 import ToReview from "./Screen/ToReview";
 
-
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 SplashScreen.preventAutoHideAsync();
-
 
 const ShippingSetup = ({ children }) => {
   const { user, token } = useUser();
 
   return (
-   <AuthProvider>
-  <ShippingProvider userId={user?._id} token={token}>
-    <AppNavigation />
-  </ShippingProvider>
-</AuthProvider>
-
+    <AuthProvider>
+      <ShippingProvider userId={user?._id} token={token}>
+        <AppNavigation />
+      </ShippingProvider>
+    </AuthProvider>
   );
 };
-
 
 // ✅ Bottom Tab Navigator
 const TabNavigator = () => (
   <Tab.Navigator
     screenOptions={{
       tabBarStyle: {
-        position: 'absolute',
+        position: "absolute",
         marginLeft: 16,
         marginRight: 16,
         height: 65,
         borderRadius: 20,
         bottom: 20,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: -3 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 15,
-        overflow: 'hidden',
+        overflow: "hidden",
         borderTopWidth: 0,
       },
       tabBarIconStyle: { marginTop: 5 },
       tabBarLabelStyle: {
         fontSize: 11,
         marginBottom: 8,
-        fontWeight: '600',
+        fontWeight: "600",
       },
-      tabBarActiveTintColor: '#074ec2',
-      tabBarInactiveTintColor: '#7c7c7c',
+      tabBarActiveTintColor: "#074ec2",
+      tabBarInactiveTintColor: "#7c7c7c",
       tabBarShowLabel: true,
-      tabBarLabelPosition: 'below-icon',
+      tabBarLabelPosition: "below-icon",
       headerShown: false,
     }}
   >
@@ -106,7 +102,11 @@ const TabNavigator = () => (
       component={Products}
       options={{
         tabBarIcon: ({ focused, color, size }) => (
-          <Icon name={focused ? "storefront" : "storefront-outline"} size={focused ? size + 4 : size + 2} color={color} />
+          <Icon
+            name={focused ? "storefront" : "storefront-outline"}
+            size={focused ? size + 4 : size + 2}
+            color={color}
+          />
         ),
       }}
     />
@@ -124,7 +124,11 @@ const TabNavigator = () => (
       component={Account}
       options={{
         tabBarIcon: ({ focused, color, size }) => (
-          <Icon name={focused ? "account-circle" : "account-circle-outline"} size={focused ? size + 4 : size + 2} color={color} />
+          <Icon
+            name={focused ? "account-circle" : "account-circle-outline"}
+            size={focused ? size + 4 : size + 2}
+            color={color}
+          />
         ),
       }}
     />

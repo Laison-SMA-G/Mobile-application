@@ -11,10 +11,10 @@ import {
 const router = express.Router({ mergeParams: true });
 
 // GET addresses
-router.get("/", auth, getUserAddresses);
+router.get("/:id", auth, getUserAddresses);
 
 // Add address
-router.post("/add", auth, addAddress);
+router.post("/add/:id", auth, addAddress);
 
 // Update address
 router.put("/:addressId", auth, updateAddress);

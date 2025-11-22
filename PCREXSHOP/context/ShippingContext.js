@@ -1,7 +1,14 @@
 // context/ShippingContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { useUser } from "./UserContext";
+import axios from "axios";
+
+const isProd = true;
+export const BASE_URL = isProd ? "https://mobile-application-2.onrender.com/api" : "http://192.168.0.102:5000/api";
+
+axios.defaults.baseURL = BASE_URL;
 
 // ==============================
 // MOCK DATA (acts as backend)
@@ -33,6 +40,7 @@ let MOCK_ADDRESSES = [
 
 const ShippingContext = createContext();
 export const useShipping = () => useContext(ShippingContext);
+const token = AsyncStorage.getItem("@token");
 
 export const ShippingProvider = ({ children }) => {
   const { user } = useUser();
@@ -52,16 +60,21 @@ export const ShippingProvider = ({ children }) => {
         return;
       }
 
-      // simulate network delay
-      await new Promise((res) => setTimeout(res, 500));
+      // Call the backend API
+      const res = await axios.get(
+        `/address/${user._id}`, // your backend route
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      const userAddresses = MOCK_ADDRESSES;
+      const userAddresses = res.data.addresses;
       setAddresses(userAddresses);
 
       const defaultAddr = userAddresses.find((a) => a.isDefault);
       setSelectedAddress(defaultAddr || userAddresses[0] || null);
     } catch (err) {
-      Alert.alert("Error", "Failed to fetch addresses (mock).");
+      console.error("Fetch addresses API error:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
@@ -73,21 +86,24 @@ export const ShippingProvider = ({ children }) => {
   const addAddress = async (addressData) => {
     setLoading(true);
     try {
-      await new Promise((res) => setTimeout(res, 500));
+      // Call the backend API
+      const res = await axios.post(
+        `/address/add/${user._id}`, // your backend route
+        addressData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      const newAddress = { ...addressData, _id: `addr${Date.now()}` };
-      if (addressData.isDefault) {
-        MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) => ({ ...a, isDefault: false }));
-      }
-      MOCK_ADDRESSES.push(newAddress);
+      const newAddress = res.data.address; // backend should return the saved address
 
-      setAddresses([...MOCK_ADDRESSES]);
-      if (addressData.isDefault || MOCK_ADDRESSES.length === 1) setSelectedAddress(newAddress);
+      await fetchAddresses();
 
       Alert.alert("Success", "Address added successfully!");
       return true;
     } catch (err) {
-      Alert.alert("Error", "Failed to add address (mock).");
+      console.error("Add address API error:", err.response?.data || err.message);
+      Alert.alert("Error", err.response?.data?.message || "Failed to add address.");
       return false;
     } finally {
       setLoading(false);
@@ -102,14 +118,10 @@ export const ShippingProvider = ({ children }) => {
     try {
       await new Promise((res) => setTimeout(res, 500));
 
-      MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) =>
-        a._id === addressData._id ? { ...addressData } : a
-      );
+      MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) => (a._id === addressData._id ? { ...addressData } : a));
 
       if (addressData.isDefault) {
-        MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) =>
-          a._id !== addressData._id ? { ...a, isDefault: false } : a
-        );
+        MOCK_ADDRESSES = MOCK_ADDRESSES.map((a) => (a._id !== addressData._id ? { ...a, isDefault: false } : a));
         setSelectedAddress(addressData);
       }
 

@@ -1,16 +1,14 @@
 // utils/axiosconfig.js
-import axios from 'axios';
-import Constants from 'expo-constants';
+import axios from "axios";
+import Constants from "expo-constants";
 
-const LOCAL_IP = '192.168.100.45:5000'; // replace with your dev machine IP
-const PROD_URL = 'https://mobile-application-2.onrender.com/api';
+const LOCAL_IP = "192.168.0.102:5000"; // replace with your dev machine IP
+const PROD_URL = "https://mobile-application-2.onrender.com/api";
 
-const isDevelopment = Constants.manifest?.packagerOpts !== undefined;
+const isDevelopment = false;
 
 // Base URL depending on environment
-const BASE_URL = isDevelopment
-  ? `http://${LOCAL_IP}/api`
-  : `${PROD_URL}/api`;
+const BASE_URL = isDevelopment ? `http://${LOCAL_IP}/api` : `${PROD_URL}/api`;
 
 const api = axios.create({
   baseURL: PROD_URL,
@@ -21,7 +19,7 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    console.error("API Error:", error.response?.data || error.message);
     return Promise.reject(error);
   }
 );

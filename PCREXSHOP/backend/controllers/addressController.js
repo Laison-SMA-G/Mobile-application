@@ -14,20 +14,23 @@ const verifyOwnership = (req, res) => {
 
 // ---------- Helper: Validate Address ----------
 const validateAddress = (data) => {
-  if (!data.fullName || !data.phone || !data.address || !data.city || !data.region) {
-    return "Missing required fields";
+  const requiredFields = ["name", "fullName", "phoneNumber", "addressLine1", "city", "postalCode", "country"];
+
+  for (const field of requiredFields) {
+    if (!data[field] || data[field].trim() === "") {
+      return `Missing required field: ${field}`;
+    }
   }
-  return null;
+
+  return null; // all fields are valid
 };
 
 // --------------------------
-// GET /users/:userId/addresses
+// GET /api/address/:id
 // --------------------------
 export const getUserAddresses = async (req, res) => {
-  if (!verifyOwnership(req, res)) return;
-
   try {
-    const user = await User.findById(req.params.userId).select("addresses");
+    const user = await User.findById(req.params.id).select("addresses");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({ addresses: user.addresses });
@@ -38,13 +41,12 @@ export const getUserAddresses = async (req, res) => {
 };
 
 // --------------------------
-// POST /users/:userId/addresses
+// POST /api/address/add/:id
 // --------------------------
 export const addAddress = async (req, res) => {
-  if (!verifyOwnership(req, res)) return;
-
   try {
-    const user = await User.findById(req.params.userId);
+    const user = await User.findById(req.params.id);
+    console.log(user);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const error = validateAddress(req.body);
