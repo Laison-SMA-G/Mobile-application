@@ -15,7 +15,8 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useOrders } from '../context/OrderContext';
-import { BASE_URL, getImageSource } from '../utils/api';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const formatPrice = (value) => {
   const num = parseFloat(value);
@@ -24,34 +25,30 @@ const formatPrice = (value) => {
   return `₱${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
+// --- Order Item Detail ---
 const OrderItemDetail = ({ item, onImagePress }) => {
-  const images = Array.isArray(item.images) && item.images.length
-    ? item.images
-    : item.image
-      ? [item.image]
-      : [];
-
   return (
     <View style={styles.orderItemDetailContainer}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {images.map((img, idx) => (
-          <TouchableOpacity key={idx} onPress={() => onImagePress(images, idx)}>
-            <Image source={getImageSource(img)} style={styles.orderItemDetailImage} resizeMode="cover" />
+        {item.images.map((img, idx) => (
+          <TouchableOpacity key={idx} onPress={() => onImagePress(item.images, idx)}>
+            <Image
+              source={{ uri: img }}
+              style={styles.orderItemDetailImage}
+              resizeMode="cover"
+            />
           </TouchableOpacity>
         ))}
-        {images.length === 0 && (
-          <Image source={getImageSource(null)} style={styles.orderItemDetailImage} />
-        )}
       </ScrollView>
       <View style={styles.orderItemDetailInfo}>
         <Text style={[styles.orderItemDetailName, { fontFamily: 'Rubik-SemiBold' }]} numberOfLines={2}>
           {item.name}
         </Text>
         <Text style={[styles.orderItemDetailQuantity, { fontFamily: 'Rubik-Regular' }]}>
-          Qty: {item.quantity || 1}
+          Qty: {item.quantity}
         </Text>
         <Text style={[styles.orderItemDetailPrice, { fontFamily: 'Rubik-Bold' }]}>
-          {formatPrice(parseFloat(item.price) * (item.quantity || 1))}
+          {formatPrice(item.price * item.quantity)}
         </Text>
       </View>
     </View>
@@ -74,34 +71,16 @@ const OrderDetails = () => {
   const [imageModalImages, setImageModalImages] = useState([]);
   const [imageModalIndex, setImageModalIndex] = useState(0);
 
-  const showLocalSuccessToast = (message) => {
-    setSuccessToastMessage(message);
-    setSuccessToastVisible(true);
-    setTimeout(() => setSuccessToastVisible(false), 2000);
-  };
-
   useEffect(() => {
     const foundOrder = orders.find(o => o._id === orderId);
     setOrder(foundOrder);
   }, [orderId, orders]);
 
-  if (!order) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="chevron-left" size={30} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { fontFamily: 'Rubik-Medium' }]}>Order Details</Text>
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { fontFamily: 'Rubik-Regular' }]}>Loading order details or order not found.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const subtotal = order.items.reduce((acc, i) => acc + i.price * (i.quantity || 1), 0);
+  const showLocalSuccessToast = (message) => {
+    setSuccessToastMessage(message);
+    setSuccessToastVisible(true);
+    setTimeout(() => setSuccessToastVisible(false), 2000);
+  };
 
   const handleCancelOrderPress = () => {
     setConfirmConfig({
@@ -122,6 +101,26 @@ const OrderDetails = () => {
     setImageModalVisible(true);
   };
 
+  if (!order) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Icon name="chevron-left" size={30} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { fontFamily: 'Rubik-Medium' }]}>Order Details</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { fontFamily: 'Rubik-Regular' }]}>
+            Loading order details or order not found.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const subtotal = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -137,6 +136,7 @@ const OrderDetails = () => {
           {order.items.map(item => (
             <OrderItemDetail key={item._id} item={item} onImagePress={openImageModal} />
           ))}
+
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { fontFamily: 'Rubik-Regular' }]}>Subtotal ({order.items.length} items):</Text>
             <Text style={[styles.summaryValue, { fontFamily: 'Rubik-SemiBold' }]}>{formatPrice(subtotal)}</Text>
@@ -152,17 +152,22 @@ const OrderDetails = () => {
         </View>
 
         {order.status === 'To Ship' && (
-          <TouchableOpacity style={[styles.actionButton, styles.cancelOrderDetailsButton]} onPress={handleCancelOrderPress}>
-            <Text style={[styles.buttonText, styles.cancelButtonText, { fontFamily: 'Rubik-Bold' }]}>Cancel Order</Text>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.cancelOrderDetailsButton]}
+            onPress={handleCancelOrderPress}
+          >
+            <Text style={[styles.buttonText, styles.cancelButtonText, { fontFamily: 'Rubik-Bold' }]}>
+              Cancel Order
+            </Text>
           </TouchableOpacity>
         )}
       </ScrollView>
 
       {/* Fullscreen Image Modal */}
-      <Modal visible={isImageModalVisible} transparent={true} animationType="fade">
+      <Modal visible={isImageModalVisible} transparent animationType="fade">
         <View style={styles.imageModalOverlay}>
           <Image
-            source={getImageSource(imageModalImages[imageModalIndex])}
+            source={{ uri: imageModalImages[imageModalIndex] }}
             style={styles.fullscreenImage}
             resizeMode="contain"
           />
@@ -173,16 +178,22 @@ const OrderDetails = () => {
       </Modal>
 
       {/* Confirmation Modal */}
-      <Modal transparent={true} visible={isConfirmModalVisible} onRequestClose={() => setConfirmModalVisible(false)}>
+      <Modal transparent visible={isConfirmModalVisible} onRequestClose={() => setConfirmModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setConfirmModalVisible(false)}>
           <Pressable style={styles.alertModalContainer}>
             <Text style={[styles.alertModalTitle, { fontFamily: 'Rubik-Bold' }]}>{confirmConfig.title}</Text>
             <Text style={[styles.alertModalMessage, { fontFamily: 'Rubik-Regular' }]}>{confirmConfig.message}</Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.modalButton, styles.modalSecondaryButton]} onPress={() => setConfirmModalVisible(false)}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalSecondaryButton]}
+                onPress={() => setConfirmModalVisible(false)}
+              >
                 <Text style={[styles.modalButtonTextSecondary, { fontFamily: 'Rubik-Bold' }]}>No</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, styles.modalPrimaryButton]} onPress={() => { confirmConfig.onConfirm(); setConfirmModalVisible(false); }}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalPrimaryButton]}
+                onPress={() => { confirmConfig.onConfirm(); setConfirmModalVisible(false); }}
+              >
                 <Text style={[styles.modalButtonTextPrimary, { fontFamily: 'Rubik-Bold' }]}>Yes, Cancel</Text>
               </TouchableOpacity>
             </View>
@@ -191,7 +202,7 @@ const OrderDetails = () => {
       </Modal>
 
       {/* Success Toast */}
-      <Modal animationType="fade" transparent={true} visible={isSuccessToastVisible}>
+      <Modal animationType="fade" transparent visible={isSuccessToastVisible}>
         <View style={styles.toastOverlay}>
           <View style={styles.toastContainer}>
             <Text style={[styles.toastText, { fontFamily: 'Rubik-SemiBold' }]}>{successToastMessage}</Text>
@@ -202,8 +213,7 @@ const OrderDetails = () => {
   );
 };
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
+// --- Styles ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#074ec2' },

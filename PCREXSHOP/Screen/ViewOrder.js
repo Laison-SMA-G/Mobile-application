@@ -1,7 +1,15 @@
 // screens/ViewOrder.js
 
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, SafeAreaView, FlatList, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useFonts } from "expo-font";
 import { useOrders } from "../context/OrderContext";
@@ -23,58 +31,85 @@ const statusStyles = {
   "To Pay": { color: "#FFA500", icon: "wallet-outline" },
   "To Ship": { color: "#3498DB", icon: "package-variant-closed" },
   "To Receive": { color: "#2ECC71", icon: "truck-delivery-outline" },
-  "To Review": { color: "#9B59B6", icon: "star-half-full" },
+  "To Complete": { color: "#9B59B6", icon: "star-half-full" },
   Completed: { color: "#7F8C8D", icon: "check-circle-outline" },
   Cancelled: { color: "#E74C3C", icon: "close-circle-outline" },
 };
 
-// Individual order item
+// --- Individual order item ---
 const OrderItem = ({ item }) => {
-  console.log(item);
+  if (!item) return null;
+
+  // Use getImageUri to handle relative URLs, missing images, or placeholders
+  const imageSource = getImageUri(item?.images?.[0]);
 
   return (
     <View style={styles.orderItemContainer}>
-      <Image source={{ uri: item?.images[0] }} style={styles.orderItemImage} />
+      <Image
+        source={imageSource}
+        style={styles.orderItemImage}
+        resizeMode="cover"
+      />
       <View style={styles.orderItemDetails}>
         <Text style={styles.orderItemName} numberOfLines={2}>
-          {item.name}
+          {item?.name || "Unnamed Item"}
         </Text>
-        <Text style={styles.orderItemQuantity}>Qty: {item.quantity || 1}</Text>
+        <Text style={styles.orderItemQuantity}>Qty: {item?.quantity || 1}</Text>
       </View>
-      <Text style={styles.orderItemPrice}>{formatPrice(parseFloat(item.price) * (item.quantity || 1))}</Text>
+      <Text style={styles.orderItemPrice}>
+        {formatPrice((parseFloat(item?.price) || 0) * (item?.quantity || 1))}
+      </Text>
     </View>
   );
 };
 
-// Single order card
+
+// --- Single order card ---
 const OrderHistoryCard = ({ order }) => {
-  const statusInfo = statusStyles[order.status] || { color: "#000", icon: "help-circle-outline" };
+  if (!order) return null;
+
+  const statusInfo = statusStyles[order?.status] || { color: "#000", icon: "help-circle-outline" };
+  const orderItems = Array.isArray(order?.items) ? order.items : [];
 
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.statusContainer}>
           <Icon name={statusInfo.icon} size={15} color={statusInfo.color} />
-          <Text style={[styles.orderStatus, { color: statusInfo.color }]}>{order.status}</Text>
+          <Text style={[styles.orderStatus, { color: statusInfo.color }]}>
+            {order?.status || "Unknown"}
+          </Text>
         </View>
         <Text style={styles.orderDate}>
-          {new Date(order.orderDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+          {order?.orderDate
+            ? new Date(order.orderDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "Unknown date"}
         </Text>
       </View>
 
-      {order.items.map((item) => (
-        <OrderItem key={item.id || item._id} item={item} />
-      ))}
+      {orderItems.length > 0 ? (
+        orderItems.map((item) => (
+          <OrderItem key={item?.id || item?._id || Math.random().toString()} item={item} />
+        ))
+      ) : (
+        <Text style={{ padding: 14, color: "#868E96", fontFamily: "Rubik-Regular" }}>
+          No items in this order.
+        </Text>
+      )}
 
       <View style={styles.cardFooter}>
         <Text style={styles.totalLabel}>Total:</Text>
-        <Text style={styles.totalValue}>{formatPrice(order.total)}</Text>
+        <Text style={styles.totalValue}>{formatPrice(order?.total || 0)}</Text>
       </View>
     </View>
   );
 };
 
-// Main ViewOrder screen
+// --- Main ViewOrder screen ---
 const ViewOrder = ({ navigation }) => {
   const { orders } = useOrders();
 
@@ -88,7 +123,12 @@ const ViewOrder = ({ navigation }) => {
   if (!fontsLoaded) return null;
 
   const sortedOrders = useMemo(() => {
-    return [...orders].sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+    try {
+      return [...(orders || [])].sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+    } catch (err) {
+      console.log("Error sorting orders:", err);
+      return [];
+    }
   }, [orders]);
 
   return (
@@ -103,7 +143,7 @@ const ViewOrder = ({ navigation }) => {
 
       <FlatList
         data={sortedOrders}
-        keyExtractor={(item) => item._id || item.id || Math.random().toString()}
+        keyExtractor={(item) => item?._id || item?.id || Math.random().toString()}
         renderItem={({ item }) => <OrderHistoryCard order={item} />}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
@@ -117,7 +157,7 @@ const ViewOrder = ({ navigation }) => {
   );
 };
 
-// Styles
+// --- Styles ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFFFF" },
   header: {

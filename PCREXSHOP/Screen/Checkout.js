@@ -65,6 +65,25 @@ const Checkout = ({ route, navigation }) => {
 
   const [showConfirmOrderModal, setShowConfirmOrderModal] = useState(false);
   const [showIncompleteAddressModal, setShowIncompleteAddressModal] = useState(false);
+
+    // Local fallback providers if context is empty
+const localProviders = [
+  { id: 1, name: "Same Day Delivery", estimatedDays: "Same day", fee: 150, icon: "bike" },
+  { id: 2, name: "Regular Delivery", estimatedDays: "2–3 days", fee: 50, icon: "truck" },
+  { id: 3, name: "Pickup", estimatedDays: "Shop pickup", fee: 0, icon: "storefront" },
+];
+
+const providersToUse = shippingProviders.length > 0 ? shippingProviders : localProviders;
+
+// Auto-select cheapest provider if none selected
+useEffect(() => {
+  if (!selectedShippingProvider && providersToUse.length > 0) {
+    const cheapest = providersToUse.reduce((a, b) => (a.fee < b.fee ? a : b));
+    setSelectedShippingProvider(cheapest);
+  }
+}, [providersToUse, selectedShippingProvider, setSelectedShippingProvider]);
+
+
   const [showEmptyOrderModal, setShowEmptyOrderModal] = useState(false);
   const [showShippingRequiredModal, setShowShippingRequiredModal] = useState(false);
 
@@ -205,58 +224,79 @@ const Checkout = ({ route, navigation }) => {
           )}
         </View>
 
-        {/* Shipping Provider */}
-        <View style={styles.card}>
-          <Text style={[styles.cardTitle, { fontFamily: 'Rubik-SemiBold' }]}>Shipping Method</Text>
+{/* Shipping Provider */}
+<View style={styles.card}>
+  <Text style={[styles.cardTitle, { fontFamily: 'Rubik-SemiBold' }]}>
+    Shipping Method
+  </Text>
 
-          <View style={styles.shippingProviderContainer}>
-            {shippingProviders.map((provider) => (
-              <TouchableOpacity
-                key={provider.id}
-                style={[
-                  styles.providerOption,
-                  selectedShippingProvider?.id === provider.id &&
-                    styles.selectedProviderOption,
-                ]}
-                onPress={() => setSelectedShippingProvider(provider)}
-              >
-                <Icon
-                  name={
-                    selectedShippingProvider?.id === provider.id
-                      ? 'check-circle'
-                      : 'circle-outline'
-                  }
-                  size={22}
-                  color={
-                    selectedShippingProvider?.id === provider.id
-                      ? THEME.primary
-                      : THEME.subCircle
-                  }
-                  style={styles.providerRadioIcon}
-                />
+  <View style={styles.shippingProviderContainer}>
+    {providersToUse.map((provider) => {
+      const currentHour = new Date().getHours();
+      const sameDayDisabled = provider.name === "Same Day Delivery" && currentHour >= 15;
+      const isSelected = selectedShippingProvider?.id === provider.id;
 
-                <View style={styles.providerDetails}>
-                  <Text style={[styles.providerName, { fontFamily: 'Rubik-Medium' }]}>
-                    {provider.name}
-                  </Text>
-                  <Text style={[styles.providerEst, { fontFamily: 'Rubik-Regular' }]}>
-                    {provider.estimatedDays}
-                  </Text>
-                </View>
+      return (
+        <TouchableOpacity
+          key={provider.id}
+          style={[
+            styles.providerOption,
+            isSelected && styles.selectedProviderOption,
+            sameDayDisabled && { opacity: 0.5 },
+          ]}
+          disabled={sameDayDisabled}
+          onPress={() => !sameDayDisabled && setSelectedShippingProvider(provider)}
+        >
+          {/* Radio Icon */}
+          <Icon
+            name={isSelected ? 'check-circle' : 'circle-outline'}
+            size={22}
+            color={isSelected ? THEME.primary : THEME.subCircle}
+            style={styles.providerRadioIcon}
+          />
 
-                <Text style={[styles.providerFee, { fontFamily: 'Rubik-SemiBold' }]}>
-                  {formatPrice(provider.fee)}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          {/* Provider Icon */}
+          <Icon
+            name={provider.icon}
+            size={24}
+            color={THEME.primary}
+            style={{ marginRight: 12 }}
+          />
 
-            {shippingProviders.length === 0 && (
-              <Text style={[styles.emptyProviderText, { fontFamily: 'Rubik-Regular' }]}>
-                No shipping methods available.
-              </Text>
-            )}
+          {/* Provider Details */}
+          <View style={styles.providerDetails}>
+            <Text style={[styles.providerName, { fontFamily: 'Rubik-Medium' }]}>
+              {provider.name}
+            </Text>
+            <Text style={[styles.providerEst, { fontFamily: 'Rubik-Regular' }]}>
+              {provider.estimatedDays}
+            </Text>
           </View>
-        </View>
+
+          {/* Fee */}
+          <Text style={[styles.providerFee, { fontFamily: 'Rubik-SemiBold' }]}>
+            {formatPrice(provider.fee)}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+
+    {/* Empty state */}
+    {providersToUse.length === 0 && (
+      <Text style={[styles.emptyProviderText, { fontFamily: 'Rubik-Regular' }]}>
+        No shipping methods available.
+      </Text>
+    )}
+
+    {/* Tooltip for Same Day cutoff */}
+    {providersToUse.some(p => p.name === "Same Day Delivery" && new Date().getHours() >= 15) && (
+      <Text style={{ color: THEME.warning, marginLeft: 10, marginTop: 4 }}>
+        Same Day Delivery is unavailable after 3:00 PM.
+      </Text>
+    )}
+  </View>
+</View>
+
 
         {/* Payment Method (COD Only) */}
         <View style={styles.card}>

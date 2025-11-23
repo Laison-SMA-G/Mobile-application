@@ -1,4 +1,4 @@
-export const BASE_URL = "https://Mobile-application-2.onrender.com/api";
+export const BASE_URL = "https://mobile-application-2.onrender.com/api";
 
 export const getImageUri = (uri) => {
   const placeholderUrl = "https://via.placeholder.com/300x300.png?text=No+Image";

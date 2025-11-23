@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useUser } from './UserContext';
 
-export const BASE_URL = "https://Mobile-application-2.onrender.com/api";
+export const BASE_URL = "https://mobile-application-2.onrender.com/api";
 
 const OrderContext = createContext();
 
@@ -13,6 +13,30 @@ export const OrderProvider = ({ children }) => {
   const { user, token, loading: loadingUser } = useUser();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // --- Helper: ensure items always have full image URLs and quantity ---
+  const formatItemImages = (item) => {
+    const placeholder = 'https://placehold.co/150x150?text=No+Image';
+
+    // Ensure images array exists
+    const images = (item.images && item.images.length
+        ? item.images
+        : item.image
+          ? [item.image]
+          : [placeholder]
+      ).map(uri => {
+        if (!uri) return placeholder;
+        if (uri.startsWith('http') || uri.startsWith('data:image')) return uri;
+        return `${BASE_URL}${uri.startsWith('/') ? uri : `/${uri}`}`;
+      });
+
+    return {
+      ...item,
+      images,
+      image: images[0],
+      quantity: typeof item.quantity === 'number' ? item.quantity : 1,
+    };
+  };
 
   // Fetch current user's orders
   const fetchOrders = async () => {
@@ -30,7 +54,14 @@ export const OrderProvider = ({ children }) => {
         throw new Error(text || 'Failed to fetch orders');
       }
       const data = await res.json();
-      setOrders(data);
+
+      // Format items to ensure valid image URLs
+      const formattedOrders = data.map(order => ({
+        ...order,
+        items: order.items.map(formatItemImages),
+      }));
+
+      setOrders(formattedOrders);
     } catch (err) {
       console.error('Failed to fetch orders:', err);
       Alert.alert('Error', 'Unable to load your orders.');
@@ -48,15 +79,8 @@ export const OrderProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      // Ensure items always include single image field (backend expects item.image)
-      const fixedItems = (orderDetails.items || []).map(item => ({
-        _id: item._id || item.id || item._id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity || 1,
-        // prioritize item.image, fallback to first images element, then to placeholder path
-        image: item.image || (item.images && item.images[0]) || '/uploads/placeholder.png',
-      }));
+      // Ensure each item has image and images array
+      const fixedItems = (orderDetails.items || []).map(formatItemImages);
 
       const payload = {
         ...orderDetails,
@@ -78,17 +102,20 @@ export const OrderProvider = ({ children }) => {
       }
 
       const responseJson = await res.json();
-
-      // backend may return either the created order directly or { message, order }
       const createdOrder = responseJson.order || responseJson;
 
-      // Prepend created order to local orders
-      setOrders(prev => [createdOrder, ...prev]);
+      // Format items in newly created order
+      const formattedCreatedOrder = {
+        ...createdOrder,
+        items: createdOrder.items.map(formatItemImages),
+      };
+
+      // Prepend new order to local state
+      setOrders(prev => [formattedCreatedOrder, ...prev]);
 
       Alert.alert('Success', 'Your order has been placed!');
     } catch (err) {
       console.error('Failed to place order:', err);
-      // Show server error message when possible (JSON string or plain text)
       try {
         const parsed = typeof err.message === 'string' ? JSON.parse(err.message) : null;
         if (parsed && parsed.error) {
@@ -129,8 +156,13 @@ export const OrderProvider = ({ children }) => {
       const responseJson = await res.json();
       const updatedOrder = responseJson.order || responseJson;
 
-      // Update local orders list to reflect server state
-      setOrders(prev => prev.map(o => (o._id === updatedOrder._id ? updatedOrder : o)));
+      // Format items in updated order
+      const formattedUpdatedOrder = {
+        ...updatedOrder,
+        items: updatedOrder.items.map(formatItemImages),
+      };
+
+      setOrders(prev => prev.map(o => (o._id === formattedUpdatedOrder._id ? formattedUpdatedOrder : o)));
 
       Alert.alert('Success', 'Order cancelled successfully!');
       return true;
