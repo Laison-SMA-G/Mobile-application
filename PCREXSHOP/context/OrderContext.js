@@ -70,50 +70,52 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Place new order
-  const placeOrder = async (orderDetails) => {
-    if (!user || !token) {
-      Alert.alert('Error', 'You must be logged in to place an order.');
-      return;
+ // Place new order
+const placeOrder = async (orderDetails) => {
+  if (!user || !token) {
+    Alert.alert('Error', 'You must be logged in to place an order.');
+    return { success: false };
+  }
+
+  setLoading(true);
+  try {
+    // Ensure each item has image and images array
+    const fixedItems = (orderDetails.items || []).map(formatItemImages);
+
+    const payload = {
+      ...orderDetails,
+      items: fixedItems,
+    };
+
+    const res = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      return { success: false, error: text };
     }
 
-    setLoading(true);
-    try {
-      // Ensure each item has image and images array
-      const fixedItems = (orderDetails.items || []).map(formatItemImages);
+    const responseJson = await res.json();
+    const createdOrder = responseJson.order || responseJson;
 
-      const payload = {
-        ...orderDetails,
-        items: fixedItems,
-      };
+    const formattedCreatedOrder = {
+      ...createdOrder,
+      items: createdOrder.items.map(formatItemImages),
+    };
 
-      const res = await fetch(`${BASE_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+    // Prepend new order to local state
+    setOrders(prev => [formattedCreatedOrder, ...prev]);
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Failed to place order');
-      }
+    Alert.alert('Success', 'Your order has been placed!');
 
-      const responseJson = await res.json();
-      const createdOrder = responseJson.order || responseJson;
+       return { success: true, order: formattedCreatedOrder };
 
-      // Format items in newly created order
-      const formattedCreatedOrder = {
-        ...createdOrder,
-        items: createdOrder.items.map(formatItemImages),
-      };
-
-      // Prepend new order to local state
-      setOrders(prev => [formattedCreatedOrder, ...prev]);
-
-      Alert.alert('Success', 'Your order has been placed!');
     } catch (err) {
       console.error('Failed to place order:', err);
       try {

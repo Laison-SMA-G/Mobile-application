@@ -407,29 +407,46 @@ const Builder = () => {
         setConfirmModalVisible(true);
     };
 
-    const handleAddToCart = () => {
-        if (!compatibilityResult.compatible) {
-            setErrorConfig({
-                title: "Cannot Add to Cart",
-                message: "Your build has compatibility issues or is incomplete. Please resolve them before proceeding."
-            });
-            setErrorModalVisible(true);
-            return;
-        }
+                const handleAddToCart = () => {
+                if (!compatibilityResult.compatible) {
+                    setErrorConfig({
+                        title: "Cannot Add to Cart",
+                        message: "Your build has compatibility issues or is incomplete."
+                    });
+                    setErrorModalVisible(true);
+                    return;
+                }
 
-        const buildItems = Object.values(selectedComponents);
-        if (buildItems.length === 0) {
-             setErrorConfig({
-                title: "Cannot Add to Cart",
-                message: "Your build is empty. Please add components before adding to cart."
-            });
-            setErrorModalVisible(true);
-            return;
-        }
-        buildItems.forEach(item => addToCart(item));
-        
-        showSuccessToast("Build Added to Cart!"); // Gamitin ang toast
-    };
+                const buildItems = Object.values(selectedComponents);
+
+                if (buildItems.length === 0) {
+                    setErrorConfig({
+                        title: "Cannot Add to Cart",
+                        message: "Your build is empty."
+                    });
+                    setErrorModalVisible(true);
+                    return;
+                }
+
+                // Generate images array for view order
+                const images = buildItems
+                    .map(i => i.image || i.images?.[0])
+                    .filter(Boolean);
+
+                const buildProduct = {
+                    id: `build-${Date.now()}`,
+                    name: "Custom PC Build",
+                    price: buildItems.reduce((t, p) => t + parseFloat(p.price), 0),
+                    images,
+                    quantity: 1,
+                    type: "pc-build"
+                };
+
+                addToCart(buildProduct);
+
+                showSuccessToast("Build Added to Cart!");
+            };
+
 
     const handleSaveBuild = () => {
         if (!compatibilityResult.compatible && Object.keys(selectedComponents).length > 0) { // Allow saving incomplete but not incompatible builds

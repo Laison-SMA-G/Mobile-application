@@ -47,7 +47,7 @@ const Checkout = ({ route, navigation }) => {
     'Rubik-SemiBold': require('../assets/fonts/Rubik/static/Rubik-SemiBold.ttf'),
   });
 
-  const { cartItems, decreaseStock } = useCart();
+  const { cartItems, decreaseStock, clearCart } = useCart();
   const { placeOrder } = useOrders();
   const {
     selectedAddress,
@@ -122,8 +122,11 @@ useEffect(() => {
     setShowConfirmOrderModal(true);
   };
 
-  const confirmOrderAction = () => {
+  const confirmOrderAction = async () => {
     setShowConfirmOrderModal(false);
+
+    if (isPlacingOrder) return;
+    setIsPlacingOrder(true);
 
     const orderDetails = {
       items: checkoutItems.map((item) => ({
