@@ -27,33 +27,82 @@ const formatPrice = (value) => {
 
 // --- Order Item Detail ---
 const OrderItemDetail = ({ item, onImagePress }) => {
+  if (!item) return null; // Prevent crashes
+
+  // ---- Normalize ALL image formats into a clean array ----
+  let images = [];
+
+  const rawImages = item?.images;
+
+  if (Array.isArray(rawImages)) {
+    images = rawImages
+      .map((img) => {
+        if (!img) return null;
+        if (typeof img === "object") return img.url || img.uri || null;
+        return img;
+      })
+      .filter(Boolean);
+  } 
+  else if (typeof rawImages === "object" && rawImages !== null) {
+    images = [rawImages.url || rawImages.uri].filter(Boolean);
+  } 
+  else if (typeof rawImages === "string") {
+    images = [rawImages];
+  }
+
   return (
     <View style={styles.orderItemDetailContainer}>
+      
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {item.images.map((img, idx) => (
-          <TouchableOpacity key={idx} onPress={() => onImagePress(item.images, idx)}>
+        {images.map((img, idx) => (
+          <TouchableOpacity
+            key={idx}
+            onPress={() => onImagePress(images, idx)}
+          >
             <Image
-              source={{ uri: img }}
+              source={getImageUri(img)}
               style={styles.orderItemDetailImage}
               resizeMode="cover"
             />
           </TouchableOpacity>
         ))}
       </ScrollView>
+
       <View style={styles.orderItemDetailInfo}>
-        <Text style={[styles.orderItemDetailName, { fontFamily: 'Rubik-SemiBold' }]} numberOfLines={2}>
+        <Text
+          style={[
+            styles.orderItemDetailName,
+            { fontFamily: "Rubik-SemiBold" },
+          ]}
+          numberOfLines={2}
+        >
           {item.name}
         </Text>
-        <Text style={[styles.orderItemDetailQuantity, { fontFamily: 'Rubik-Regular' }]}>
+
+        <Text
+          style={[
+            styles.orderItemDetailQuantity,
+            { fontFamily: "Rubik-Regular" },
+          ]}
+        >
           Qty: {item.quantity}
         </Text>
-        <Text style={[styles.orderItemDetailPrice, { fontFamily: 'Rubik-Bold' }]}>
+
+        <Text
+          style={[
+            styles.orderItemDetailPrice,
+            { fontFamily: "Rubik-Bold" },
+          ]}
+        >
           {formatPrice(item.price * item.quantity)}
         </Text>
       </View>
     </View>
   );
 };
+
+
+
 
 const OrderDetails = () => {
   const navigation = useNavigation();

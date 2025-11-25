@@ -1,5 +1,5 @@
 // utils/getImageUri.js
-export const BASE_URL = "https://mobile-application-2.onrender.com";
+export const BASE_URL = "https://mobile-application-2.onrender.com/api";
 
 export const getImageUri = (uri) => {
   if (!uri || typeof uri !== "string") {

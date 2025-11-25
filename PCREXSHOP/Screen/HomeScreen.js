@@ -17,7 +17,7 @@ import { useUser } from "../context/UserContext";
 import { useFonts } from "expo-font";
 import BannerSlider from "../Components/BannerSlider";
 import CategoryList from "../Components/CategoryList";
-import BestSellerSection from "../Components/BestSellerSection";
+//import BestSellerSection from "../Components/BestSellerSection";
 import PreBuiltSection from "../Components/PreBuiltSection";
 import ProductCard from "../Components/ProductCard";
 import * as SplashScreen from "expo-splash-screen";
@@ -141,16 +141,14 @@ export default function HomeScreen({ navigation }) {
             <Icon name="account-outline" size={26} color={THEME.icons} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={openAdminChat} style={styles.headerIcon}>
-            <Icon name="message-text-outline" size={26} color={THEME.icons} />
-          </TouchableOpacity>
+         
         </View>
       </View>
 
       <ScrollView>
         <BannerSlider />
         <CategoryList categories={categories} navigation={navigation} />
-        <BestSellerSection data={bestSellerProducts} navigation={navigation} />
+      
         <PreBuiltSection data={preBuiltProducts} navigation={navigation} />
 
         <View style={styles.sectionContainer}>
