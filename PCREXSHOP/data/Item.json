@@ -2,7 +2,7 @@
   {
     "id": 1,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1Nqx_oFjfeyxRKwn1PWHkhPhfe3pzRzPc"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763624593/products/zdo8simmpr5qc2o1dv09.png"
     
     ],
     "name": "AMD Wraith Stealth Cooler",
@@ -18,7 +18,7 @@
   {
     "id": 2,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1VgmhxRYnRlKzLuP3RibofZNFT7d8iHz3"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763624594/products/okihljgxmumveeffq0m7.png"
     ],
     "name": "AMD Stock Heatsink Fan",
     "price": "500",
@@ -33,7 +33,7 @@
   {
     "id": 3,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1y5zWu8S8kuN3JKvVAwn5IM29XCEWUJM2"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763624595/products/l7v9hdaeyaw1ha0xg18w.png"
     ],
     "name": "Deepcool AG400 Single Tower Hydro Bearing CPU Air Cooler ARGB White",
     "price": "1400",
@@ -49,7 +49,7 @@
   {
     "id": 4,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1E9untu4l_D3VQjel3uNOB1a4eTw-pjy2"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763688846/products/jfmck8z1bkwxwi1cvlyh.png"
     ],
     "name": "MSI PRO B650M-A WiFi D5 AM5 DDR5 Motherboard",
     "price": "3000",
@@ -64,8 +64,9 @@
   },
   {
     "id": 5,
+    
     "images": [
-      "https://drive.google.com/uc?export=view&id=1CfApdbwvn5RDEk-6abNkdz8xYRKtRBuq"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763688847/products/j67veowghmseyppxhcxs.png"
     ],
     "name": "Biostar A520MHP Socket AM4 DDR4 Motherboard",
     "price": "3500",
@@ -80,7 +81,7 @@
   {
     "id": 6,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1ec21L0HWv-ZcdwBy6STAU93NrsCr2DAL"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763688848/products/qzav9nz1syajyro7ggyx.png"
     ],
     "name": "Biostar RX 580 VA5805RV82 Dual Cooling Fan 8GB 256-bit GDDR5 Gaming Videocard",
     "price": "6000",
@@ -96,7 +97,7 @@
   {
     "id": 7,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1DgW4OI2A2QQPiAjDNKRMafv_AV2LL4hv"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763795621/products/zkdpzeoqaciev4r6plgb.png"
     ],
     "name": "MSI GeForce RTX 3060 Ventus 2X OC 12GB GDDR6 Gaming Graphics Card",
     "price": "29",
@@ -111,7 +112,7 @@
   {
     "id": 8,
     "images": [
-     "https://drive.google.com/uc?export=view&id=1nXO5-JiqjnuHOhV2VWpjzvnTmzLSLvmP"
+     "https://res.cloudinary.com/dggvqyg57/image/upload/v1763795628/products/ynjgo8cwm3gopphcqirc.png"
     ],
     "name": "Acer AC-550 550W Full Modular 80+ Bronze Power Supply",
     "price": "500",
@@ -126,7 +127,7 @@
   {
     "id": 9,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1oSF5Vj4e-fXSd0jGCWpV_7Qjx5Z0ao4J"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763795634/products/mjamllkjim9vfegzywyp.png"
     ],
     "name": "InPlay GS750-Ultra (750W, 450W, 650W) 80+ Bronze Rated Hydro Bearing RGB Power Supply",
     "price": "49",
@@ -142,7 +143,7 @@
   {
     "id": 10,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1CSjCZh1ID7HpromOj8mLmMyr8ik53xmr"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763901959/products/aalqp6cbgdcp0bpwiul8.png"
     ],
     "name": "Seagate Barracuda ST1000DM010 1TB 7200RPM SATA HDD",
     "price": "44",
@@ -157,7 +158,7 @@
   {
     "id": 11,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1LRexz-0fnyEVSECTBV3UbeKoz00mdcBd"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763901960/products/yjnirmkbqd226hvmb0w9.png"
     ],
     "name": "Seagate ST2000DM008 2TB SATA HDD",
     "price": "54",
@@ -172,7 +173,7 @@
   {
     "id": 12,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1cvUto1iGmiVmyuR_WGzmO3gtfT5hKNRd"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763901962/products/cmiqjcjouu1k4nqab2ba.png"
     ],
     "name": "Kingston SSDNow A400 480GB SATA 2.5 SSD",
     "price": "34",
@@ -188,7 +189,7 @@
   {
     "id": 13,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1x-BJg0jMJuo42IpE2xeaiAWSOdu9axy8"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902072/products/lvjodmbloemrlawe4dqm.png"
     ],
     "name": "Ramsta R600 256GB M.2 SATA SSD",
     "price": "19",
@@ -203,7 +204,7 @@
   {
     "id": 14,
     "images": [
-      "https://drive.google.com/uc?export=view&id=15DHeah6qT1YRv67RpVnVeSQzzt3AS0Ga"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902073/products/hns67mjab0dnb3f2rc9c.png"
     ],
     "name": "Kingston Fury Renegade SFYRS 500GB PCIe 4.0 NVMe SSD",
     "price": "4500",
@@ -218,7 +219,7 @@
   {
     "id": 15,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1l8rp1NBDYSlgJyKrVn2D3nmw1F3cb-Hd"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763903121/products/dzhl90cyorjsq4mwmbr1.png"
     ],
     "name": "Team Elite TForce Delta 16GB (2x8GB) 3200MHz DDR4 RGB Memory White",
     "price": "2500",
@@ -233,7 +234,7 @@
   {
     "id": 16,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1yTaltXuoHT75yEogm65FQNQmQKCB32S_"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902075/products/sowbck6y5atxmamark31.png"
     ],
     "name": "Kingston Fury Beast 16GB 3200MT/s DDR4 RGB Black",
     "price": "49",
@@ -249,7 +250,7 @@
   {
     "id": 17,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1-MPkGzEUQsMS57gyYAgDICUn4vWVVjx9"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902161/products/rpkpu5awsqah3pxnzmqd.jpg"
     ],
     "name": "Kingston KVR32S22S8/16 16GB 3200MHz DDR4 SODIMM",
     "price": "39",
@@ -264,7 +265,7 @@
   {
     "id": 18,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1z4HJJ86wXG0eAkhF-TL8TjgUOedR9V0B"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902162/products/jvtqddfhqwklida44vlv.png"
     ],
     "name": "AMD Ryzen 5 5600X 6-Core 12-Thread AM4 3.7GHz Gaming Processor with Wraith Stealth Cooler MPK",
     "price": "5500",
@@ -280,7 +281,7 @@
   {
     "id": 19,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1qT6TjTkKPjzUuy72sBj8sdWsClFCP6o3"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902163/products/yizyjiyqcxutroo2c1hk.jpg"
     ],
     "name": "AMD Ryzen 7 5700G 8-Core 16-Thread AM4 APU with Radeon Vega 8 Graphics & Wraith Stealth Cooler MPK",
     "price": "7500",
@@ -295,7 +296,7 @@
   {
     "id": 20,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1g7mgC0Z_T1w7k1LMX-d-nk5-9WwH6unJ"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902267/products/vh3l9hawdxcihhgrscfd.png"
     ],
     "name": "AMD Ryzen 3 3200g Socket Am4 3.6ghz with Radeon Vega 8 Processor MPK",
     "price": "2800",
@@ -310,7 +311,7 @@
   {
     "id": 21,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1NmGyHtHNKVPD3FL8iK6FTz48JjvcJjAy"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902268/products/iyhwgsfrtf6yard5jqkp.png"
     ],
     "name": "AMD Ryzen 7 7700X AM5",
     "price": "20",
@@ -325,7 +326,7 @@
   {
     "id": 22,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1h8msStE4h9dGTL6aLnOK3o1jEwnPvjed"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902269/products/dk10lxe312w7t2qzpbff.png"
     ],
     "name": "Intel Core i7-14700F LGA 1700",
     "price": "19000",
@@ -514,7 +515,7 @@
   {
     "id": 33,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1CF2mDMTkuyzT0SMTcBOi4_A96dMKGH7b"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902324/products/rxcrii0a8wet3ijwut0y.png"
     ],
     "name": "InPlay Wind 05 and Wind 01 Acrylic Side Panel Micro ATX Tempered Glass Case",
     "price": "1700",
@@ -530,7 +531,7 @@
   {
     "id": 34,
     "images": [
-      "https://drive.google.com/uc?export=view&id=10M-Ejyqhl73_u2a7vG4pqKVQ-t8h8LKy"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902325/products/y0g9ixrbjcfbr73kxwan.png"
     ],
     "name": "YGT V300 M-ATX Tempered Glass Gaming PC Case White",
     "price": "1500",
@@ -669,7 +670,7 @@
   {
     "id": 40,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1rsw1y3V7u1j-AlEEjb1Ei81pIjCqx7CZ"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902326/products/jxmdmmiliazycqnfnhhd.png"
     ],
     "name": "Ramsta Solid State Drive SSD 128GB",
     "price": "700",
@@ -686,7 +687,7 @@
   {
     "id": 41,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1hHO5QTv2zkB2JGxuaW5iXYRPP5RaiRqB"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902457/products/tnuiq2773bptzhdwuetz.png"
     ],
     "name": "Ramsta Solid State Drive SSD 256GB",
     "price": "900",
@@ -703,7 +704,7 @@
   {
     "id": 42,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1sTn7TKK0iLuldFA0XhEHo7dYpYLGOuMe"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902458/products/ckhvct3erwpnw1hr07d1.png"
     ],
     "name": "Ramsta Solid State Drive SSD 512GB",
     "price": "1200",
@@ -720,7 +721,7 @@
   {
     "id": 43,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1bx7erW4Nv6xx5PFWgA5PvoJNt2QZ-eKi"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902459/products/smccvf7qwdpkjbxrisq6.png"
     ],
     "name": "Ramsta Solid State Drive SSD 1TB",
     "price": "3600",
@@ -756,7 +757,7 @@
   {
     "id": 45,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1yhnDyI_5-oVetm3iLGgGDIqQLVVt3Y0G"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902654/products/y9yb73ifumhb1ychgnug.png"
     ],
     "name": "Gstorm LED Fan White",
     "price": "125",
@@ -773,7 +774,7 @@
   {
     "id": 46,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1yhnDyI_5-oVetm3iLGgGDIqQLVVt3Y0G"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902655/products/lrb4pvhard8s24brqj0x.png"
     ],
     "name": "Gstorm LED Fan Pink",
     "price": "125",
@@ -790,7 +791,7 @@
   {
     "id": 47,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1yhnDyI_5-oVetm3iLGgGDIqQLVVt3Y0G"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902656/products/f73mccjtg1fdwlkmpcsf.png"
     ],
     "name": "Gstorm LED Fan Rainbow Blaze Slim",
     "price": "125",
@@ -807,7 +808,7 @@
   {
     "id": 48,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1ssv-LOVEGXZ14TQK5dChutVd56bkKQsH"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902692/products/tt9rcrbtee0nkp26r6xr.png"
     ],
     "name": "HSF MA400 CPU Cooler Series 1500RPM 4 Copper Pipes Black and White",
     "price": "450",
@@ -824,7 +825,7 @@
   {
     "id": 49,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1hTZn77ueMtWWImen3xXjpRsCHJEDNeFG"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902693/products/hupqxtc8d1lwwwtefnam.png"
     ],
     "name": "MMA Gaming Glass Case",
     "price": "850",
@@ -879,7 +880,7 @@
   {
     "id": 52,
     "images": [
-      "https://drive.google.com/uc?export=view&id=12ub3a0yeKCdGsFdVxDzs7fOBDUTp_kjv"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902695/products/mvudbxuorkwpblgj19ma.png"
     ],
     "name": "Inplay Seaview Fan ARGB 3 with Remote",
     "price": "850",
@@ -953,7 +954,7 @@
   {
     "id": 56,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1-Q7G1K0-9JHnMCnEm0yZ6kajG_RylClc"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902747/products/nohyfikblbvz4ktisil4.png"
     ],
     "name": "Ramsta M.2 SSD 128GB",
     "price": "800",
@@ -970,7 +971,7 @@
   {
     "id": 57,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1xl13SGUBV4_sv23T_cGvm5d9SCP5s61t"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902748/products/zjj3vzsulucoqhs8ykp3.png"
     ],
     "name": "Ramsta M.2 SSD 256GB",
     "price": "1500",
@@ -1063,7 +1064,7 @@
   {
     "id": 62,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1wCbhGljOtAL4XkUAaBKvQOgvnVUFno8U"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902749/products/nr1ky9joog0nbzz4fkfe.png"
     ],
     "name": "Inplay Lite X10 Generic Case Black with Power Supply",
     "price": "750",
@@ -1080,7 +1081,7 @@
   {
     "id": 63,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1Xm9DIvR2lRtspBaTotFxu-A7eGD9gZIK"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902782/products/xx0o1jv9jzsmc3408rto.webp"
     ],
     "name": "HSF Jonsbro CR-1400 Silent Series 90mm Tower Cooler 4 Pipes ARGB 180w White",
     "price": "850",
@@ -1097,7 +1098,7 @@
   {
     "id": 64,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1OfCDiY6m5-5CmVPm3ASVafOMKcUAPgd-"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902782/products/qpqh59x9xlgoffptdaif.webp"
     ],
     "name": "HSF CR-1200 Jonsbro RGB 90mm Single Tower CPU Cooler LGA and AMD",
     "price": "400",
@@ -1114,7 +1115,7 @@
   {
     "id": 65,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1H9x2LrLQvimX7kh-T50PdWEP71HzMmG2"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763902783/products/pthumm7n1efstdqx06zk.webp"
     ],
     "name": "Inplay RF-P4 CPU Cooler 4 Heatpipe RGB",
     "price": "500",
@@ -1188,7 +1189,7 @@
   {
     "id": 69,
     "images": [
-      "https://drive.google.com/uc?export=view&id=1Qhl7kSKXQfYCej8u7RrN8qQlgeETmpr9"
+      "https://res.cloudinary.com/dggvqyg57/image/upload/v1763903120/products/l4eobpds0lb7o58sklg9.png"
     ],
     "name": "Cyborg Case Keytech",
     "price": "2600",

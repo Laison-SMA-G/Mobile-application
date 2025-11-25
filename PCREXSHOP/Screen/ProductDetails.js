@@ -53,7 +53,7 @@ const ProductDetails = ({ route, navigation }) => {
   const [stockModalMessage, setStockModalMessage] = useState("");
   const [isSuccessToastVisible, setSuccessToastVisible] = useState(false);
 
-  const actualStock = product.quantity ?? 0;
+  const actualStock = product.stock ?? 0;
   const isOutOfStock = actualStock === 0;
 
   if (!fontsLoaded) return null;
@@ -161,10 +161,7 @@ const ProductDetails = ({ route, navigation }) => {
           <Text style={styles.productPrice}>{formatPrice(product.price)}</Text>
 
           <View style={styles.infoRowContainer}>
-            <View style={styles.infoBox}>
-              <Icon name="star" size={20} color="#FFC700" />
-              <Text style={styles.infoText}>{product.rate || 0} Stars</Text>
-            </View>
+            
             <View style={styles.infoBox}>
               <Icon name="package-variant-closed" size={20} color={"#EE2323"} />
               <Text style={[styles.infoText, isOutOfStock && styles.outOfStockText]}>

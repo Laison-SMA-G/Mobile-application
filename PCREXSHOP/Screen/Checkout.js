@@ -122,32 +122,52 @@ useEffect(() => {
     setShowConfirmOrderModal(true);
   };
 
-  const confirmOrderAction = async () => {
-    setShowConfirmOrderModal(false);
+  const confirmOrderAction = () => {
+  setShowConfirmOrderModal(false);
 
-    if (isPlacingOrder) return;
-    setIsPlacingOrder(true);
+  const orderDetails = {
+    items: checkoutItems.map((item) => {
+      const isCustom = item.custom === true;
 
-    const orderDetails = {
-      items: checkoutItems.map((item) => ({
-        _id: item._id || item.id,
-        name: item.name,
-        price: item.price,
+      // Normalize real products
+      const realProductId =
+        item._id ||                  // If exists (MongoDB)
+        item.id ||                   // Numeric id from your JSON API
+        (item.productId?._id || item.productId) || // Fallback
+        null;
+
+      if (isCustom || !realProductId) {
+        // Treat as custom item
+        return {
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image || item.images?.[0],
+          custom: true,
+        };
+      }
+
+      // Real store product
+      return {
+        productId: realProductId,
         quantity: item.quantity,
-      })),
-      shippingAddress: selectedAddress,
-      paymentMethod,
-      shippingProvider: selectedShippingProvider,
-      subtotal,
-      shippingFee: finalShippingFee,
-      total,
-      orderDate: new Date().toISOString(),
-    };
+      };
+    }),
 
-    placeOrder(orderDetails);
-    decreaseStock(checkoutItems);
-    navigation.navigate('OrderSuccess');
+    shippingAddress: selectedAddress,
+    paymentMethod,
+    shippingProvider: selectedShippingProvider,
+    subtotal,
+    shippingFee: finalShippingFee,
+    total,
+    orderDate: new Date().toISOString(),
   };
+
+  placeOrder(orderDetails);
+  decreaseStock(checkoutItems);
+  navigation.navigate('OrderSuccess');
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -336,7 +356,7 @@ useEffect(() => {
           <Text style={[styles.cardTitle, { fontFamily: 'Rubik-SemiBold' }]}>Order Summary</Text>
 
           {checkoutItems.map((item, index) => (
-            <View key={`${item.id}-${index}`} style={styles.itemContainer}>
+            <View key={`${item._id}-${index}`} style={styles.itemContainer}>
               <Image source={getImageSource(item.images?.[0])} style={styles.itemImage} />
 
               <View style={styles.itemDetails}>

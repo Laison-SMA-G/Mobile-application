@@ -21,6 +21,12 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useCart } from '../context/CartContext';
 import Item from '../data/Item.json';
 
+// api 
+import api from '../utils/axiosconfig';
+
+
+
+
 // --- COMPONENT & DATA STRUCTURE ---
 const componentStructure = [
     // All 'required' properties are set to false for maximum customization freedom.
@@ -134,10 +140,29 @@ const Builder = () => {
       'Rubik-SemiBold': require('../assets/fonts/Rubik/static/Rubik-SemiBold.ttf'),
     });
 
+    // --- FETCH PRODUCTS FROM API ---
+    const [products, setProducts] = useState([]);
+  
+ 
+        
+    console.log(products)
+    const fetchProducts = async () => {
+     try {
+        const res = await api.get("/products");
+     
+       setProducts(res.data);
+      } catch (err) {
+        console.error("Error fetching products:", err.message);
+       }
+     };
+     fetchProducts();
+
+
+
     useEffect(() => {
-        setAllProducts(Item);
+        setAllProducts(products);
         setIsLoading(false);
-    }, []);
+    }, [products]);
     
     // === BAGONG HELPER FUNCTION PARA SA SUCCESS TOAST ===
     const showSuccessToast = (message) => {
@@ -158,7 +183,7 @@ const Builder = () => {
         // You might want a more sophisticated check if specific limits exist (e.g., only one CPU).
         // For now, let's allow multiple RAM but restrict other major components.
         const isDuplicate = Object.values(currentSelection).some(
-            (selectedItem) => selectedItem && selectedItem.id === product.id && currentSlotId !== 'memory'
+            (selectedItem) => selectedItem && selectedItem._id === product._id && currentSlotId !== 'memory'
         );
         if (isDuplicate) {
              issues.push('This item is already in your build.');
@@ -407,45 +432,45 @@ const Builder = () => {
         setConfirmModalVisible(true);
     };
 
-                const handleAddToCart = () => {
-                if (!compatibilityResult.compatible) {
-                    setErrorConfig({
-                        title: "Cannot Add to Cart",
-                        message: "Your build has compatibility issues or is incomplete."
-                    });
-                    setErrorModalVisible(true);
-                    return;
-                }
+   const handleAddToCart = () => {
+    if (!compatibilityResult.compatible) {
+        setErrorConfig({
+            title: "Cannot Add to Cart",
+            message: "Your build has compatibility issues or is incomplete."
+        });
+        setErrorModalVisible(true);
+        return;
+    }
 
-                const buildItems = Object.values(selectedComponents);
+    // Extract all selected component items (CPU, GPU, RAM, etc.)
+    const buildItems = Object.values(selectedComponents).filter(Boolean);
 
-                if (buildItems.length === 0) {
-                    setErrorConfig({
-                        title: "Cannot Add to Cart",
-                        message: "Your build is empty."
-                    });
-                    setErrorModalVisible(true);
-                    return;
-                }
+    if (buildItems.length === 0) {
+        setErrorConfig({
+            title: "Cannot Add to Cart",
+            message: "Your build does not contain any components."
+        });
+        setErrorModalVisible(true);
+        return;
+    }
 
-                // Generate images array for view order
-                const images = buildItems
-                    .map(i => i.image || i.images?.[0])
-                    .filter(Boolean);
+    // Add each component as its own cart item
+    buildItems.forEach(component => {
+        addToCart({
+            _id: component._id,          // REAL MongoDB ID
+            name: component.name,
+            price: component.price,
+            images: component.images,    // Or component.image
+            quantity: 1,
+            category: component.category || "PC Part",
+            fromBuild: true              // optional flag
+        });
+    });
 
-                const buildProduct = {
-                    id: `build-${Date.now()}`,
-                    name: "Custom PC Build",
-                    price: buildItems.reduce((t, p) => t + parseFloat(p.price), 0),
-                    images,
-                    quantity: 1,
-                    type: "pc-build"
-                };
+    showSuccessToast("Your PC build has been added to the cart!");
+};
 
-                addToCart(buildProduct);
-
-                showSuccessToast("Build Added to Cart!");
-            };
+    
 
 
     const handleSaveBuild = () => {
@@ -516,11 +541,11 @@ const Builder = () => {
         let availableProducts = allProducts.filter(p => p.type === currentSlot?.type);
         
         // --- Refined filtering by subType for SSD and HDD ---
-        if (currentSlot?.id === 'ssd_sata') {
+        if (currentSlot?._id === 'ssd_sata') {
             availableProducts = availableProducts.filter(p => getStorageType(p) === 'SATA');
-        } else if (currentSlot?.id === 'ssd_m2') {
+        } else if (currentSlot?._id === 'ssd_m2') {
             availableProducts = availableProducts.filter(p => getStorageType(p) === 'M.2');
-        } else if (currentSlot?.id === 'hdd') {
+        } else if (currentSlot?._id === 'hdd') {
             // Ensure it's an actual HDD type and detected as SATA
             availableProducts = availableProducts.filter(p => p.type === 'HDD' && getStorageType(p) === 'SATA');
         }
@@ -531,13 +556,13 @@ const Builder = () => {
 
         if (availableProducts.length === 0) return <Text style={styles.noPartsText}>No parts available for this category.</Text>;
         
-        const filteredProducts = showOnlyCompatible ? availableProducts.filter(p => getCompatibilityInfo(p, currentSlot?.type, currentSlot?.id, selectedComponents).compatible) : availableProducts;
+        const filteredProducts = showOnlyCompatible ? availableProducts.filter(p => getCompatibilityInfo(p, currentSlot?.type, currentSlot?._id, selectedComponents).compatible) : availableProducts;
         
         if (filteredProducts.length === 0) return <Text style={styles.noPartsText}>No compatible parts found for your current selection.</Text>;
         
         return (
             <FlatList
-                data={filteredProducts} keyExtractor={item => item.id.toString()}
+                data={filteredProducts} keyExtractor={item => item._id}
                 renderItem={({ item }) => {
                     const { compatible, reason } = getCompatibilityInfo(item, currentSlot.type, currentSlot.id, selectedComponents);
                     return (

@@ -14,30 +14,6 @@ export const OrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // --- Helper: ensure items always have full image URLs and quantity ---
-  const formatItemImages = (item) => {
-    const placeholder = 'https://placehold.co/150x150?text=No+Image';
-
-    // Ensure images array exists
-    const images = (item.images && item.images.length
-        ? item.images
-        : item.image
-          ? [item.image]
-          : [placeholder]
-      ).map(uri => {
-        if (!uri) return placeholder;
-        if (uri.startsWith('http') || uri.startsWith('data:image')) return uri;
-        return `${BASE_URL}${uri.startsWith('/') ? uri : `/${uri}`}`;
-      });
-
-    return {
-      ...item,
-      images,
-      image: images[0],
-      quantity: typeof item.quantity === 'number' ? item.quantity : 1,
-    };
-  };
-
   // Fetch current user's orders
   const fetchOrders = async () => {
     if (!user || !token) return;
@@ -54,14 +30,7 @@ export const OrderProvider = ({ children }) => {
         throw new Error(text || 'Failed to fetch orders');
       }
       const data = await res.json();
-
-      // Format items to ensure valid image URLs
-      const formattedOrders = data.map(order => ({
-        ...order,
-        items: order.items.map(formatItemImages),
-      }));
-
-      setOrders(formattedOrders);
+      setOrders(data);
     } catch (err) {
       console.error('Failed to fetch orders:', err);
       Alert.alert('Error', 'Unable to load your orders.');
@@ -70,22 +39,53 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
- // Place new order
-const placeOrder = async (orderDetails) => {
+  const mockorder = {
+    items:  [{
+      _id:"69253a23a632dd782efb12ae",
+        name: "Biostar A520MHP Socket AM4 DDR4 Motherboard",
+        price:"3500",
+        quantity:6,
+        image: "https://res.cloudinary.com/dggvqyg57/image/upload/v1763688847/products…"
+  }]
+  }
+
+  // Place new regular order
+ const placeOrder = async (orderDetails) => {
   if (!user || !token) {
     Alert.alert('Error', 'You must be logged in to place an order.');
-    return { success: false };
+    return;
   }
 
   setLoading(true);
   try {
-    // Ensure each item has image and images array
-    const fixedItems = (orderDetails.items || []).map(formatItemImages);
+    const fixedItems = (mockorder.items || []).map(item => {
+      console.log(item);
+      // If custom build, don't send _id
+      if (item.type === "pc-build" || item.custom) {
+        return {
+          _id:item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item?.quantity || item?.stock || 1,
+          image: item.image || (item.images && item.images[0]) || '/uploads/placeholder.png',
+        };
+      }
+
+      // Normal product
+      return {
+        _id: item._id, // only valid Mongo ObjectIds
+        name: item.name,
+        price: item.price,
+        quantity: item?.quantity || item?.stock || 1,
+        image: item.image || (item.images && item.images[0]) || '/uploads/placeholder.png',
+      };
+    });
 
     const payload = {
       ...orderDetails,
       items: fixedItems,
     };
+    
 
     const res = await fetch(`${BASE_URL}/orders`, {
       method: 'POST',
@@ -95,39 +95,74 @@ const placeOrder = async (orderDetails) => {
       },
       body: JSON.stringify(payload),
     });
-
+    console.log(payload);
     if (!res.ok) {
       const text = await res.text();
-      return { success: false, error: text };
+      throw new Error(text || 'Failed to place order');
     }
 
     const responseJson = await res.json();
     const createdOrder = responseJson.order || responseJson;
 
-    const formattedCreatedOrder = {
-      ...createdOrder,
-      items: createdOrder.items.map(formatItemImages),
-    };
-
-    // Prepend new order to local state
-    setOrders(prev => [formattedCreatedOrder, ...prev]);
-
+    setOrders(prev => [createdOrder, ...prev]);
     Alert.alert('Success', 'Your order has been placed!');
+  } catch (err) {
+    console.error('Failed to place order:', err);
+    Alert.alert('Error', 'Unable to place your order.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-       return { success: true, order: formattedCreatedOrder };
 
-    } catch (err) {
-      console.error('Failed to place order:', err);
-      try {
-        const parsed = typeof err.message === 'string' ? JSON.parse(err.message) : null;
-        if (parsed && parsed.error) {
-          Alert.alert('Error', parsed.error);
-        } else {
-          Alert.alert('Error', 'Unable to place your order.');
-        }
-      } catch {
-        Alert.alert('Error', 'Unable to place your order.');
+  // Place builder/custom order
+  const placeBuilderOrder = async (builderCart, additionalDetails = {}) => {
+    if (!user || !token) {
+      Alert.alert('Error', 'You must be logged in to place an order.');
+      return;
+    }
+
+    if (!builderCart || builderCart.length === 0) {
+      Alert.alert('Error', 'Your builder cart is empty.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const builderItems = builderCart.map(build => ({
+        name: build.name || 'Custom Build',
+        price: build.price,
+        quantity: build.quantity || 1,
+        image: build.image || (build.images && build.images[0]) || '/uploads/placeholder.png',
+        custom: true, // mark as custom so backend knows
+      }));
+
+      const payload = {
+        ...additionalDetails,
+        items: builderItems,
+      };
+
+      const res = await fetch(`${BASE_URL}/orders`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to place builder order');
       }
+
+      const responseJson = await res.json();
+      const createdOrder = responseJson.order || responseJson;
+      setOrders(prev => [createdOrder, ...prev]);
+      Alert.alert('Success', 'Your custom build order has been placed!');
+    } catch (err) {
+      console.error('Failed to place builder order:', err);
+      Alert.alert('Error', 'Unable to place your custom build order.');
     } finally {
       setLoading(false);
     }
@@ -157,15 +192,7 @@ const placeOrder = async (orderDetails) => {
 
       const responseJson = await res.json();
       const updatedOrder = responseJson.order || responseJson;
-
-      // Format items in updated order
-      const formattedUpdatedOrder = {
-        ...updatedOrder,
-        items: updatedOrder.items.map(formatItemImages),
-      };
-
-      setOrders(prev => prev.map(o => (o._id === formattedUpdatedOrder._id ? formattedUpdatedOrder : o)));
-
+      setOrders(prev => prev.map(o => (o._id === updatedOrder._id ? updatedOrder : o)));
       Alert.alert('Success', 'Order cancelled successfully!');
       return true;
     } catch (err) {
@@ -183,7 +210,7 @@ const placeOrder = async (orderDetails) => {
 
   return (
     <OrderContext.Provider
-      value={{ orders, loading, fetchOrders, placeOrder, cancelOrder }}
+      value={{ orders, loading, fetchOrders, placeOrder, placeBuilderOrder, cancelOrder }}
     >
       {children}
     </OrderContext.Provider>

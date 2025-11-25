@@ -62,7 +62,7 @@ const BestSellerSection = ({ title, data, navigation }) => {
             />
           </View>
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id.toString()}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
