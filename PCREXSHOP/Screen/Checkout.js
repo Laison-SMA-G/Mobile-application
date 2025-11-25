@@ -139,6 +139,7 @@ useEffect(() => {
       if (isCustom || !realProductId) {
         // Treat as custom item
         return {
+          _id:item._id,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -149,8 +150,11 @@ useEffect(() => {
 
       // Real store product
       return {
-        productId: realProductId,
-        quantity: item.quantity,
+        _id: realProductId,
+         name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image || item.images?.[0],
       };
     }),
 

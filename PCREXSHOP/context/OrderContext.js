@@ -39,15 +39,15 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  const mockorder = {
-    items:  [{
-      _id:"69253a23a632dd782efb12ae",
-        name: "Biostar A520MHP Socket AM4 DDR4 Motherboard",
-        price:"3500",
-        quantity:6,
-        image: "https://res.cloudinary.com/dggvqyg57/image/upload/v1763688847/products…"
-  }]
-  }
+  // const mockorder = {
+  //   items:  [{
+  //     _id:"69253a23a632dd782efb12ae",
+  //       name: "Biostar A520MHP Socket AM4 DDR4 Motherboard",
+  //       price:"3500",
+  //       quantity:6,
+  //       image: "https://res.cloudinary.com/dggvqyg57/image/upload/v1763688847/products…"
+  // }]
+  // }
 
   // Place new regular order
  const placeOrder = async (orderDetails) => {
@@ -58,7 +58,7 @@ export const OrderProvider = ({ children }) => {
 
   setLoading(true);
   try {
-    const fixedItems = (mockorder.items || []).map(item => {
+    const fixedItems = (orderDetails.items || []).map(item => {
       console.log(item);
       // If custom build, don't send _id
       if (item.type === "pc-build" || item.custom) {
