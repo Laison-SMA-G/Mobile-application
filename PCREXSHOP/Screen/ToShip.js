@@ -48,30 +48,29 @@ const ToShip = ({ navigation }) => {
   }
 
   const renderItem = ({ item }) => {
-  const product = Array.isArray(item.items) && item.items.length > 0 ? item.items[0] : null;
+    const product = Array.isArray(item.items) && item.items.length > 0 ? item.items[0] : null;
 
-  // Prioritize image > first in images array > placeholder
-  const imageUri =
-    product?.image ||
-    (Array.isArray(product?.images) && product.images.length > 0 ? product.images[0] : null);
+    // Prioritize image > first in images array > placeholder
+    const imageUri =
+      product?.image || (Array.isArray(product?.images) && product.images.length > 0 ? product.images[0] : null);
 
-  const imageSource = getImageUri(imageUri); // always safe
+    const imageSource = getImageUri(imageUri); // always safe
 
-  return (
-    <TouchableOpacity
-      style={styles.orderCard}
-      onPress={() => navigation.navigate("OrderDetails", { orderId: item._id })}
-    >
-      <Image source={imageSource} style={styles.productImage} />
-      <View style={styles.orderInfo}>
-        <Text style={styles.productName}>{product?.name || "Product Name"}</Text>
-        <Text style={styles.orderAmount}>Qty: {product?.quantity || 1}</Text>
-        <Text style={styles.orderPrice}>₱{item.total?.toFixed(2) || "0.00"}</Text>
-      </View>
-      <Icon name="chevron-right" size={24} color="#074ec2" />
-    </TouchableOpacity>
-  );
-};
+    return (
+      <TouchableOpacity
+        style={styles.orderCard}
+        onPress={() => navigation.navigate("OrderDetails", { orderId: item._id })}
+      >
+        <Image source={imageSource} style={styles.productImage} />
+        <View style={styles.orderInfo}>
+          <Text style={styles.productName}>{product?.name || "Product Name"}</Text>
+          <Text style={styles.orderAmount}>Qty: {product?.quantity || 1}</Text>
+          <Text style={styles.orderPrice}>₱{item.total?.toFixed(2) || "0.00"}</Text>
+        </View>
+        <Icon name="chevron-right" size={24} color="#074ec2" />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>

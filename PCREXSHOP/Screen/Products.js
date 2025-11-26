@@ -49,7 +49,7 @@ const Products = ({ navigation }) => {
         setFilteredProducts(products);
 
         const uniqueCategories = [
-          ...new Set(products.map((p) => p.category || "Unknown")),
+          ...new Set(products.map((p) => p.category.name || "Unknown")),
         ];
         setCategories(uniqueCategories);
       } catch (error) {

@@ -48,7 +48,7 @@ const CategoryProducts = ({ route, navigation }) => {
   // Fetch all products once
   const fetchAllProducts = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/products`);
+      const res = await fetch(`${BASE_URL}/products`);
       const data = await res.json();
       setAllProducts(data);
     } catch (error) {

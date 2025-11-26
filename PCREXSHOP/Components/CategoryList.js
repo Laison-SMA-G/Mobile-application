@@ -40,6 +40,7 @@ const CategoryList = ({ categories, navigation }) => {
       <Text style={styles.CategoriesText}>Categories</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
         {allCategories.map((cat, index) => {
+          console.log(cat)
           const isActive = cat === activeCategory || (cat === 'All' && route.name === 'Home');
 
           return (
